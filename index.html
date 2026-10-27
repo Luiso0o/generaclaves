@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-7GwY1Jbw2P8Ovv1n5fEULLuOOnyANTlyilWexa5Q/6s='; script-src 'sha256-MJN+yytvq3BI1AXCHTmPEnMF/loJrO/qXZwWn2JteQs=' 'sha256-VOqfDUkX2rWttTAjoTJiauzKG5vwLAExYF0PsBzZRTI=' 'sha256-1IOFeK3AUTYbYiZjI2o7YjBpaTow7lOODWA3IxmAN+w='; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-7GwY1Jbw2P8Ovv1n5fEULLuOOnyANTlyilWexa5Q/6s='; script-src 'sha256-327MQjDb2A7dZK2GiG2mKzDOm/id+gi15AbkJxroBXQ=' 'sha256-VOqfDUkX2rWttTAjoTJiauzKG5vwLAExYF0PsBzZRTI=' 'sha256-1IOFeK3AUTYbYiZjI2o7YjBpaTow7lOODWA3IxmAN+w='; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -1201,6 +1201,18 @@ window.Generador = (function () {
     return clases;
   }
 
+  /*
+   * Clave aleatoria con al menos un carácter de cada tipo marcado.
+   *
+   * Se sortea cada carácter del alfabeto completo y, si falta algún tipo, se
+   * tira la clave entera y se saca otra. Así todas las claves válidas salen
+   * con la misma probabilidad. Reservar un hueco para cada tipo, que es lo
+   * habitual, hace que salgan más cifras y símbolos de la cuenta y la clave
+   * sea un poco más fácil de adivinar de lo que dice el cálculo.
+   *
+   * Con 16 caracteres o más casi nunca hay que repetir: falta algún tipo en
+   * menos de 1 de cada 10 claves.
+   */
   function aleatoria(opciones) {
     var clases = clasesDeCaracteres(opciones);
 
@@ -1209,27 +1221,20 @@ window.Generador = (function () {
     }
 
     var alfabeto = clases.join('');
-    var caracteres = [];
+    var exigir = opciones.longitud >= clases.length;
+    var clave;
     var i;
 
-    for (i = 0; i < clases.length; i++) {
-      caracteres.push(elegir(clases[i]));
-    }
+    do {
+      clave = '';
+      for (i = 0; i < opciones.longitud; i++) {
+        clave += elegir(alfabeto);
+      }
+    } while (exigir && !clases.every(function (clase) {
+      return Array.prototype.some.call(clave, function (c) { return clase.indexOf(c) !== -1; });
+    }));
 
-    for (i = caracteres.length; i < opciones.longitud; i++) {
-      caracteres.push(elegir(alfabeto));
-    }
-
-    // Barajado de Fisher-Yates, para que las posiciones reservadas no queden
-    // siempre al principio.
-    for (i = caracteres.length - 1; i > 0; i--) {
-      var j = azar(i + 1);
-      var guardado = caracteres[i];
-      caracteres[i] = caracteres[j];
-      caracteres[j] = guardado;
-    }
-
-    return caracteres.slice(0, opciones.longitud).join('');
+    return clave;
   }
 
   // --- modo memorizable -----------------------------------------------------
@@ -1630,7 +1635,32 @@ window.Generador = (function () {
       return 0;
     }
 
-    return opciones.longitud * Math.log2(clases.join('').length);
+    // Claves que llevan todos los tipos, por inclusión-exclusión: todas, menos
+    // las que no llevan algún tipo, más las que no llevan dos, etc. Se calcula
+    // en proporción al total para no desbordar con longitudes grandes.
+    var total = clases.join('').length;
+    var largo = opciones.longitud;
+
+    if (largo < clases.length) {
+      return largo * Math.log2(total);
+    }
+
+    var proporcion = 0;
+    var mascara;
+
+    for (mascara = 0; mascara < (1 << clases.length); mascara++) {
+      var quitados = 0;
+      var tipos = 0;
+      var k;
+
+      for (k = 0; k < clases.length; k++) {
+        if (mascara & (1 << k)) { quitados += clases[k].length; tipos++; }
+      }
+
+      proporcion += (tipos % 2 ? -1 : 1) * Math.pow((total - quitados) / total, largo);
+    }
+
+    return largo * Math.log2(total) + Math.log2(proporcion);
   }
 
   /*
