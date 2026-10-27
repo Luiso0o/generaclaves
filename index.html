@@ -1,0 +1,2126 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-Zbh7/zQvCcy5pKb2XpCcPQdwIihXtzztNflVzKmGdwo='; script-src 'sha256-QEtaOL/rytAlxe9gttq2m2LveSZI3OQMETGxJYqLTK4=' 'sha256-o4vZj2Ayto4DsjSwx75+L31CY1UNe4Yw83esSbcBKxQ=' 'sha256-ouBuHvGAlZDAdQaxfYVeGdrPEF46H8YE6PImM+aWedA='; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Generador de contraseñas</title>
+<style>/*
+ * Generador de contraseñas — hoja de estilo.
+ *
+ * Sin dependencias externas: ni tipografías de terceros ni marcos de estilo, para
+ * que la página funcione igual en una red interna sin salida a internet. Tema
+ * claro y oscuro, este último según la preferencia del sistema.
+ */
+
+:root {
+  --fondo:        #F2EFEC;
+  --tarjeta:      #FFFFFF;
+  --tarjeta-2:    #FAF6F3;
+  --tinta:        #1E1917;
+  --tinta-2:      #6B5F5A;
+  --tinta-3:      #948680;
+  --linea:        #E2D9D3;
+  --acento:       #8E2A38;
+  --acento-suave: #F4E3E5;
+  --sobre-acento: #FFF8F8;
+  --bien:         #2F6B4F;
+  --regular:      #9A5E17;
+  --mal:          #A33026;
+
+  --letra: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo:        #161211;
+    --tarjeta:      #1F1A18;
+    --tarjeta-2:    #272120;
+    --tinta:        #EFE7E2;
+    --tinta-2:      #B3A49B;
+    --tinta-3:      #8C7D75;
+    --linea:        #342C29;
+    --acento:       #DE7885;
+    --acento-suave: #3A2226;
+    --sobre-acento: #1A1113;
+    --bien:         #74C49A;
+    --regular:      #D69A4F;
+    --mal:          #E0817A;
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* La interfaz oculta y muestra bloques con la propiedad hidden; sin esto,
+   cualquier regla con display propio (la barra de fuerza, por ejemplo) la
+   ignoraría. */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: var(--letra);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+.pagina {
+  max-width: 860px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 36px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* --- portada --------------------------------------------------------------- */
+
+.antetitulo {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--tinta-3);
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 6vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+
+.entrada {
+  margin: 0;
+  color: var(--tinta-2);
+  max-width: 62ch;
+}
+
+/* --- resultado ------------------------------------------------------------- */
+
+.resultado {
+  background: var(--tarjeta);
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  padding: 26px 22px 0;
+  overflow: hidden;
+}
+
+.clave {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: clamp(20px, 4.8vw, 32px);
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: center;
+  word-break: break-all;
+  user-select: all;
+}
+
+.medida,
+.rotulo-lote {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--tinta-3);
+}
+
+.politica {
+  margin: 16px 0 20px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--bien);
+  background: var(--tarjeta-2);
+  border-radius: 0 9px 9px 0;
+  font-size: 13px;
+  color: var(--tinta-2);
+}
+
+.politica-falla {
+  border-left-color: var(--mal);
+  color: var(--mal);
+  font-weight: 600;
+}
+
+.rotulo-lote {
+  text-align: left;
+  margin: 0 0 12px;
+  font-weight: 600;
+  color: var(--tinta-2);
+}
+
+.acciones-resultado {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 0 20px;
+}
+
+/* --- lote ------------------------------------------------------------------ */
+
+.lote {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--linea);
+}
+
+.lote li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--linea);
+  font-family: var(--mono);
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.lote .orden {
+  flex: none;
+  width: 2.2em;
+  font-family: var(--letra);
+  font-size: 11px;
+  color: var(--tinta-3);
+  text-align: right;
+}
+
+.lote .texto {
+  flex: 1 1 auto;
+  user-select: all;
+}
+
+.etiqueta-bloque {
+  display: block;
+  margin: 18px 0 6px;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--tinta-3);
+}
+
+.bloque {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--tinta);
+  background: var(--tarjeta-2);
+  border: 1px solid var(--linea);
+  border-radius: 9px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+/* --- barra de fuerza ------------------------------------------------------- */
+
+.fuerza {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 16px;
+  align-items: baseline;
+  margin: 0 -22px;
+  padding: 14px 22px 16px;
+  border-top: 1px solid var(--linea);
+  background: var(--tarjeta-2);
+}
+
+.valoracion { font-weight: 700; font-size: 14px; }
+
+.bits {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--tinta-2);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.barra {
+  grid-column: 1 / -1;
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 99px;
+  background: var(--acento-suave);
+  overflow: hidden;
+}
+
+.barra > i { display: block; height: 100%; border-radius: 99px; }
+
+.escala {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--tinta-3);
+  max-width: 68ch;
+}
+
+.fuerza-baja     .valoracion { color: var(--mal); }
+.fuerza-baja     .barra > i  { background: var(--mal); }
+.fuerza-ajustada .valoracion { color: var(--regular); }
+.fuerza-ajustada .barra > i  { background: var(--regular); }
+.fuerza-correcta .valoracion { color: var(--bien); }
+.fuerza-correcta .barra > i  { background: var(--bien); }
+.fuerza-alta     .valoracion { color: var(--bien); }
+.fuerza-alta     .barra > i  { background: var(--bien); }
+
+/* El ancho viaja como clase y no como estilo en línea, para que la política de
+   contenidos pueda prohibir los estilos incrustados. */
+.barra > i.p0   { width: 0; }
+.barra > i.p5   { width: 5%; }
+.barra > i.p10  { width: 10%; }
+.barra > i.p15  { width: 15%; }
+.barra > i.p20  { width: 20%; }
+.barra > i.p25  { width: 25%; }
+.barra > i.p30  { width: 30%; }
+.barra > i.p35  { width: 35%; }
+.barra > i.p40  { width: 40%; }
+.barra > i.p45  { width: 45%; }
+.barra > i.p50  { width: 50%; }
+.barra > i.p55  { width: 55%; }
+.barra > i.p60  { width: 60%; }
+.barra > i.p65  { width: 65%; }
+.barra > i.p70  { width: 70%; }
+.barra > i.p75  { width: 75%; }
+.barra > i.p80  { width: 80%; }
+.barra > i.p85  { width: 85%; }
+.barra > i.p90  { width: 90%; }
+.barra > i.p95  { width: 95%; }
+.barra > i.p100 { width: 100%; }
+
+/* --- formulario ------------------------------------------------------------ */
+
+.panel {
+  background: var(--tarjeta);
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.selector-modo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pestanas {
+  display: flex;
+  border-bottom: 1px solid var(--linea);
+  background: var(--tarjeta-2);
+}
+
+.pestana {
+  flex: 1 1 0;
+  padding: 13px 14px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--tinta-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.pestana:hover { color: var(--tinta); }
+
+#modo-aleatoria:checked ~ .pestanas .pestana-aleatoria,
+#modo-memorizable:checked ~ .pestanas .pestana-memorizable {
+  color: var(--acento);
+  background: var(--tarjeta);
+  border-bottom-color: var(--acento);
+}
+
+#modo-aleatoria:focus-visible ~ .pestanas .pestana-aleatoria,
+#modo-memorizable:focus-visible ~ .pestanas .pestana-memorizable {
+  outline: 2px solid var(--acento);
+  outline-offset: -3px;
+}
+
+#modo-aleatoria:checked   ~ .paneles .grupo-memorizable { display: none; }
+#modo-memorizable:checked ~ .paneles .grupo-aleatoria   { display: none; }
+
+.grupo {
+  border: 0;
+  margin: 0;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px 22px;
+}
+
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.campo { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.campo-ancho { grid-column: 1 / -1; }
+
+.campo > label,
+.campo .etiqueta {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--tinta-3);
+}
+
+.campo small { font-size: 12px; color: var(--tinta-3); }
+
+input[type="number"],
+select {
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  background: var(--tarjeta-2);
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.casillas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 9px 22px;
+  margin-top: 2px;
+}
+
+.casilla {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.casilla input { margin: 3px 0 0; flex: none; accent-color: var(--acento); }
+.casilla small { display: block; }
+
+code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--tinta-2);
+  background: var(--tarjeta-2);
+  border: 1px solid var(--linea);
+  border-radius: 5px;
+  padding: 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.barra-acciones {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 0 20px 20px;
+  flex-wrap: wrap;
+}
+
+.campo-cantidad { flex: 0 0 110px; }
+.campo-cantidad input { width: 110px; }
+
+/* --- botones --------------------------------------------------------------- */
+
+button {
+  font: inherit;
+  font-weight: 600;
+  border-radius: 9px;
+  border: 1px solid var(--linea);
+  background: var(--tarjeta-2);
+  color: var(--tinta);
+  padding: 10px 18px;
+  cursor: pointer;
+}
+
+button:hover { border-color: var(--tinta-3); }
+button:active { transform: translateY(1px); }
+button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+.principal {
+  flex: 1 1 200px;
+  background: var(--acento);
+  border-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.principal:hover { border-color: var(--acento); filter: brightness(1.08); }
+
+.menuda {
+  flex: none;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--letra);
+}
+
+/* --- altas de usuario ------------------------------------------------------ */
+
+.panel-altas { padding: 20px; }
+
+.panel-altas h2 { margin: 0 0 8px; }
+
+.explicacion {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  color: var(--tinta-2);
+  max-width: 70ch;
+}
+
+.barra-altas { padding: 16px 0 0; align-items: flex-end; }
+.barra-altas .campo { flex: 0 0 210px; }
+
+.tabla-altas {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 18px;
+  font-size: 14px;
+}
+
+.tabla-altas th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+  font-weight: 700;
+  padding: 0 8px 6px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.tabla-altas td {
+  padding: 7px 8px 7px 0;
+  border-bottom: 1px solid var(--linea);
+  vertical-align: baseline;
+  word-break: break-all;
+}
+
+.tabla-altas .col-usuario { font-family: var(--letra); color: var(--tinta-2); }
+.tabla-altas .col-clave { font-family: var(--mono); user-select: all; }
+.tabla-altas .col-acciones { width: 1%; padding-right: 0; text-align: right; }
+
+.aviso-altas {
+  margin: 14px 0 0;
+  padding: 11px 14px;
+  border-left: 3px solid var(--regular);
+  background: var(--tarjeta-2);
+  border-radius: 0 9px 9px 0;
+  font-size: 13px;
+  color: var(--tinta-2);
+}
+
+.pie-altas { margin-top: 14px; font-size: 12.5px; }
+
+@media (max-width: 460px) {
+  .tabla-altas { font-size: 13px; }
+  .tabla-altas .col-acciones { display: none; }
+}
+
+/* --- notas ----------------------------------------------------------------- */
+
+.notas { margin-top: 4px; }
+
+.notas h2 {
+  font-size: 18px;
+  margin: 0 0 16px;
+}
+
+.rejilla-notas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.rejilla-notas article {
+  background: var(--tarjeta);
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.rejilla-notas h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  letter-spacing: .04em;
+  color: var(--acento);
+}
+
+.rejilla-notas p {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  color: var(--tinta-2);
+}
+
+.rejilla-notas p:last-child { margin-bottom: 0; }
+
+.pie-aviso {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border-left: 3px solid var(--acento);
+  background: var(--tarjeta);
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+  color: var(--tinta-2);
+}
+
+.resultado .aviso-error { margin-bottom: 20px; }
+
+noscript .aviso-error { display: block; }
+
+.aviso-error {
+  margin: 0;
+  padding: 13px 16px;
+  border: 1px solid var(--mal);
+  border-radius: 10px;
+  background: var(--acento-suave);
+  color: var(--mal);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* --- ajustes finos --------------------------------------------------------- */
+
+@media (max-width: 460px) {
+  .fuerza { grid-template-columns: 1fr; }
+  .bits { text-align: left; }
+  .campo-cantidad,
+  .campo-cantidad input { flex-basis: 100%; width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="pagina">
+
+  <header class="portada">
+    <h1>Generador de contraseñas</h1>
+    <p class="entrada">
+      Aleatoria para guardarla en el gestor de contraseñas; memorizable para las que tienes que
+      teclear de memoria. Se generan en tu navegador y no salen de él.
+    </p>
+  </header>
+
+  <noscript>
+    <p class="aviso-error">
+      Esta página necesita JavaScript: las contraseñas se generan en tu propio navegador.
+    </p>
+  </noscript>
+
+  <section class="resultado" aria-label="Contraseña generada">
+
+    <p class="aviso-error" id="error" role="alert" hidden></p>
+
+    <div id="resultado-unico">
+      <p class="clave" id="clave" aria-live="polite">Generando…</p>
+      <p class="medida" id="medida"></p>
+      <div class="acciones-resultado">
+        <button type="button" class="copiar" data-copiar="clave">Copiar</button>
+      </div>
+    </div>
+
+    <div id="resultado-lote" hidden>
+      <p class="rotulo-lote" id="rotulo-lote"></p>
+      <ol class="lote" id="lote"></ol>
+      <label class="etiqueta-bloque" for="todas">Todas juntas, una por línea</label>
+      <textarea id="todas" class="bloque" rows="6" readonly></textarea>
+      <div class="acciones-resultado">
+        <button type="button" class="copiar" data-copiar="todas">Copiar todas</button>
+      </div>
+    </div>
+
+    <p class="politica" id="politica" role="status" hidden></p>
+
+    <div class="fuerza" id="fuerza" hidden>
+      <span class="valoracion" id="valoracion"></span>
+      <span class="bits" id="bits"></span>
+      <div class="barra"><i id="relleno" class="p0"></i></div>
+      <p class="escala">
+        El tiempo es lo que tardaría en adivinarla alguien que robe el resumen criptográfico de
+        la clave, a mil millones de pruebas por segundo. Por internet, con bloqueo por intentos,
+        el margen es muchísimo mayor.
+      </p>
+    </div>
+  </section>
+
+  <form class="panel" id="ajustes">
+
+    <input type="radio" name="modo" id="modo-aleatoria" value="aleatoria" class="selector-modo" checked>
+    <input type="radio" name="modo" id="modo-memorizable" value="memorizable" class="selector-modo">
+
+    <div class="pestanas">
+      <label for="modo-aleatoria" class="pestana pestana-aleatoria">Aleatoria</label>
+      <label for="modo-memorizable" class="pestana pestana-memorizable">Memorizable</label>
+    </div>
+
+    <div class="paneles">
+
+      <fieldset class="grupo grupo-aleatoria">
+        <legend class="oculto">Opciones del modo aleatorio</legend>
+
+        <div class="campo">
+          <label for="longitud">Longitud</label>
+          <input type="number" id="longitud" name="longitud" min="6"
+                 max="64" step="1" value="50">
+        </div>
+
+        <div class="campo campo-ancho">
+          <span class="etiqueta">Incluir</span>
+          <div class="casillas">
+            <label class="casilla">
+              <input type="checkbox" id="mayusculas" name="mayusculas" checked>
+              <span>Mayúsculas <code>A-Z</code></span>
+            </label>
+            <label class="casilla">
+              <input type="checkbox" id="minusculas" name="minusculas" checked>
+              <span>Minúsculas <code>a-z</code></span>
+            </label>
+            <label class="casilla">
+              <input type="checkbox" id="numeros" name="numeros" checked>
+              <span>Números <code>0-9</code></span>
+            </label>
+            <label class="casilla">
+              <input type="checkbox" id="simbolos" name="simbolos" checked>
+              <span>Símbolos <code>!@#$%&amp;*+-=?_.:;()[]{}</code></span>
+            </label>
+            <label class="casilla">
+              <input type="checkbox" id="sin_parecidos" name="sin_parecidos">
+              <span>Excluir caracteres parecidos <code>i I 1 l L o O 0</code>
+                <small>Para claves que haya que dictar o copiar de un papel</small></span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo grupo-memorizable">
+        <legend class="oculto">Opciones del modo memorizable</legend>
+
+        <div class="campo">
+          <label for="palabras">Número de palabras</label>
+          <select id="palabras" name="palabras">
+                          <option value="2" >2 palabras</option>
+                          <option value="3" >3 palabras</option>
+                          <option value="4" selected>4 palabras</option>
+                          <option value="5" >5 palabras</option>
+                          <option value="6" >6 palabras</option>
+                      </select>
+          <small>Cada palabra suma unos 11 bits: es lo que más protege</small>
+        </div>
+
+        <div class="campo">
+          <label for="longitud_minima">Longitud mínima</label>
+          <input type="number" id="longitud_minima" name="longitud_minima"
+                 min="8" max="64" step="1"
+                 value="16">
+          <small>Se descartan las claves más cortas</small>
+        </div>
+
+        <div class="campo">
+          <label for="estilo">Composición</label>
+          <select id="estilo" name="estilo">
+            <option value="sustantivo_adjetivo" selected>Sustantivo + adjetivo</option>
+            <option value="solo_sustantivos">Solo sustantivos</option>
+          </select>
+          <small>Con adjetivo se recuerda mejor: forma una imagen</small>
+        </div>
+
+        <div class="campo">
+          <label for="separador">Separador</label>
+          <select id="separador" name="separador">
+            <option value="-" selected>Guion &nbsp; farola-seca</option>
+            <option value=".">Punto &nbsp; farola.seca</option>
+            <option value="_">Guion bajo &nbsp; farola_seca</option>
+            <option value="+">Más &nbsp; farola+seca</option>
+            <option value="*">Asterisco &nbsp; farola*seca</option>
+            <option value="/">Barra &nbsp; farola/seca</option>
+            <option value=":">Dos puntos &nbsp; farola:seca</option>
+            <option value="=">Igual &nbsp; farola=seca</option>
+            <option value="">Ninguno &nbsp; farolaSeca</option>
+            <option value="azar_clave">Al azar, uno por clave</option>
+            <option value="azar_hueco">Al azar, uno por hueco</option>
+          </select>
+          <small>Uno fijo no suma seguridad; al azar suma 3 bits por clave o por hueco</small>
+        </div>
+
+        <div class="campo">
+          <label for="mayusculas_palabras">Mayúsculas</label>
+          <select id="mayusculas_palabras" name="mayusculas_palabras">
+            <option value="cada" selected>Inicial de cada palabra</option>
+            <option value="primera">Solo la primera</option>
+            <option value="ninguna">Ninguna</option>
+          </select>
+          <small>No suman seguridad: el atacante sabe dónde van</small>
+        </div>
+
+        <div class="campo">
+          <label for="nucleo">Núcleo aleatorio</label>
+          <select id="nucleo" name="nucleo">
+                          <option value="0" >
+                Sin núcleo              </option>
+                          <option value="1" >
+                1 carácter              </option>
+                          <option value="2" selected>
+                2 caracteres              </option>
+                          <option value="3" >
+                3 caracteres              </option>
+                          <option value="4" >
+                4 caracteres              </option>
+                          <option value="5" >
+                5 caracteres              </option>
+                          <option value="6" >
+                6 caracteres              </option>
+                          <option value="7" >
+                7 caracteres              </option>
+                          <option value="8" >
+                8 caracteres              </option>
+                          <option value="9" >
+                9 caracteres              </option>
+                          <option value="10" >
+                10 caracteres              </option>
+                      </select>
+          <small>Pone el número que suelen exigir</small>
+        </div>
+
+        <div class="campo">
+          <label for="nucleo_alfabeto">Núcleo con</label>
+          <select id="nucleo_alfabeto" name="nucleo_alfabeto">
+            <option value="cifras" selected>Solo cifras &nbsp; 3,3 bits</option>
+            <option value="alfanumerico">Letras y cifras &nbsp; 5,9 bits</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="nucleo_posicion">Posición del núcleo</label>
+          <select id="nucleo_posicion" name="nucleo_posicion">
+            <option value="final" selected>Al final &nbsp; farola-seca-47</option>
+            <option value="medio">En medio &nbsp; farola-47-seca</option>
+            <option value="inicio">Al principio &nbsp; 47-farola-seca</option>
+            <option value="azar">Al azar</option>
+          </select>
+          <small>Al azar suma unos 2 bits, pero cuesta más recordarla</small>
+        </div>
+
+        <div class="campo campo-ancho">
+          <span class="etiqueta">Ajustes</span>
+          <div class="casillas">
+            <label class="casilla">
+              <input type="checkbox" id="simbolo" name="simbolo">
+              <span>Añadir un símbolo al final <code>!#$%*+=?</code>
+                <small>Suma solo 3 bits; el separador ya cuenta como símbolo</small></span>
+            </label>
+            <label class="casilla">
+              <input type="checkbox" id="sin_tildes" name="sin_tildes" checked>
+              <span>Quitar tildes y eñes
+                <small>Evita problemas al teclearla en otros teclados o sistemas</small></span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+    </div>
+
+    <div class="barra-acciones">
+      <div class="campo campo-cantidad">
+        <label for="cantidad">Cantidad</label>
+        <input type="number" id="cantidad" name="cantidad" min="1" max="200"
+               step="1" value="1">
+      </div>
+      <button type="button" class="principal" id="generar">Generar</button>
+    </div>
+  </form>
+
+  <section class="panel panel-altas">
+    <h2>Altas de usuario</h2>
+    <p class="explicacion">
+      Una clave para cada usuario con los ajustes de arriba. Ninguna contiene trozos de su
+      nombre de cuenta.
+    </p>
+
+    <label class="etiqueta-bloque" for="usuarios">Usuarios, uno por línea</label>
+    <textarea id="usuarios" class="bloque" rows="5"
+              placeholder="usuario1&#10;usuario2@ejemplo.com&#10;usuario3"></textarea>
+
+    <div class="barra-acciones barra-altas">
+      <div class="campo">
+        <label for="csv_separador">Separador del CSV</label>
+        <select id="csv_separador" name="csv_separador">
+          <option value="," selected>Coma &nbsp; para Import-Csv</option>
+          <option value=";">Punto y coma &nbsp; para Excel</option>
+        </select>
+      </div>
+      <button type="button" class="principal" id="generar-altas">Generar para cada usuario</button>
+    </div>
+
+    <p class="aviso-error" id="error-altas" role="alert" hidden></p>
+
+    <div id="resultado-altas" hidden>
+      <table class="tabla-altas">
+        <thead>
+          <tr><th>Usuario</th><th>Contraseña</th><th><span class="oculto">Acciones</span></th></tr>
+        </thead>
+        <tbody id="filas-altas"></tbody>
+      </table>
+
+      <p class="aviso-altas" id="aviso-altas" hidden></p>
+
+      <div class="acciones-resultado">
+        <button type="button" id="descargar-csv">Descargar CSV</button>
+        <button type="button" class="copiar" data-copiar="altas-texto">Copiar todo</button>
+      </div>
+
+      <textarea id="altas-texto" class="oculto" readonly></textarea>
+
+      <p class="pie-aviso pie-altas">
+        El CSV lleva las contraseñas en claro: bórralo en cuanto hagas las altas. En PowerShell,
+        las columnas son <code>$_.usuario</code> y <code>$_.contrasena</code>.
+      </p>
+    </div>
+  </section>
+
+  <section class="notas">
+    <h2>Lo que conviene saber</h2>
+
+    <div class="rejilla-notas">
+      <article>
+        <h3>Cuál usar</h3>
+        <p>
+          <strong>Aleatoria</strong> para todo lo que guarda el gestor de contraseñas: nunca la
+          vas a teclear, así que puede ser larga e imposible de recordar.
+        </p>
+        <p>
+          <strong>Memorizable</strong> para las que tecleas tú: la del ordenador, la del correo o
+          la maestra del gestor. Para el día a día, 4 palabras y 2 cifras; para lo importante,
+          6 palabras.
+        </p>
+      </article>
+
+      <article>
+        <h3>Qué da seguridad</h3>
+        <p>
+          Solo lo que se sortea: las palabras, las cifras del núcleo y el separador al azar.
+          Cada palabra más multiplica por unas 2.000 el trabajo del atacante.
+        </p>
+        <p>
+          Los adornos con regla fija apenas suman: la mayúscula inicial, el símbolo al final o
+          cambiar letras por cifras (<em>C3rcano</em>). Los programas de descifrado los prueban de
+          serie, y la clave cuesta más de recordar.
+        </p>
+      </article>
+
+      <article>
+        <h3>Qué mide la barra</h3>
+        <p>
+          Los bits de entropía, suponiendo que el atacante conoce el método y el diccionario.
+          Cada bit dobla su trabajo. Por debajo de 40 es floja si roban el resumen de la clave;
+          a partir de 60, sobrada.
+        </p>
+      </article>
+
+      <article>
+        <h3>Lo que no arregla una buena contraseña</h3>
+        <p>
+          Repetirla: una clave usada en dos sitios vale lo que el más débil de los dos. Tampoco
+          protege si la escribes en una página falsa. Lo que de verdad cambia el resultado es la
+          verificación en dos pasos, una clave distinta por servicio y un gestor de contraseñas.
+        </p>
+      </article>
+    </div>
+
+    <p class="pie-aviso">
+      Las contraseñas no se envían ni se guardan en ningún sitio; al recargar la página
+      desaparecen. Solo se recuerdan los ajustes del formulario, en este navegador.
+    </p>
+  </section>
+
+</div>
+
+<script type="application/json" id="diccionario">{"sustantivos":{"masculinos":["abanico","abedul","abeto","abrigo","acantilado","acebo","aceite","acordeón","acuario","acueducto","adobe","adorno","aeropuerto","aerosol","aguacate","aguacero","aguilucho","agujero","ajedrez","ajo","alambique","alambre","albatros","albergue","albornoz","alcatraz","alcornoque","alero","alerón","alfiler","algarrobo","algodón","aljibe","almacén","almanaque","almendro","almíbar","almohadón","alpiste","alquitrán","altar","altavoz","altillo","alud","amanecer","amarre","ámbar","andamio","andén","anexo","anfiteatro","anillo","anís","anzuelo","aparador","aparejo","aperitivo","apio","arado","arándano","árbol","arbusto","arce","archivador","arcoíris","arcón","arenal","arenque","arete","armadillo","armario","armazón","armiño","arnés","aro","arpón","arrabal","arrecife","arroyo","arroz","artefacto","asador","ascensor","asfalto","asiento","asteroide","astillero","astro","atajo","atardecer","aterrizaje","ático","atlas","atolón","atril","atún","auditorio","auricular","autobús","automóvil","avestruz","avión","azabache","azafrán","azahar","azúcar","azucarero","azulejo","babero","bacalao","baile","bajío","balancín","balcón","balde","balneario","bálsamo","bambú","banano","banco","bandoneón","banjo","banquete","banquillo","baobab","barbecho","barco","barniz","barómetro","barranco","barril","barrio","barro","basalto","bastidor","bastión","bastón","batido","baúl","bazar","bebedero","belén","berro","betún","biberón","bidón","bigote","billar","billete","biombo","bisonte","bisturí","bizcocho","bocadillo","bocado","boceto","bochorno","bodegón","boj","boliche","bólido","bolígrafo","bolo","bolsillo","bolso","bombín","bombo","bombón","boniato","bonsái","boquerón","boquete","bordado","borde","bordillo","borrador","bosque","bote","botín","botiquín","botón","brasero","brazalete","brazo","brebaje","brezo","brillo","brindis","broche","brócoli","bronce","brote","bucle","buey","búfalo","bufete","búho","bulbo","búnker","buñuelo","buque","butano","buzón","caballete","caballo","cabello","cabezal","cable","cabo","cacahuete","cacao","cacharro","cachorro","cactus","café","cafetal","caimán","cajón","calabacín","calamar","calambre","calcetín","caldero","caldo","calendario","calentador","callejón","calzado","camaleón","camarón","camarote","camello","camerino","camino","camión","campamento","campanario","campo","canal","canapé","canario","candado","candelabro","candil","cangrejo","canguro","cántaro","canto","cañaveral","cañón","caparazón","capitel","capote","caqui","caracol","caramelo","carbón","carey","cargamento","carguero","carmín","carnaval","carnero","carrete","carril","carrito","carruaje","carrusel","cartel","cartón","cartucho","cascabel","casco","casino","casquete","casquillo","castillo","castor","catre","cauce","caucho","caudal","cayado","cazo","cedro","cemento","cenicero","centeno","cepillo","cepo","cerco","cerebro","cerezo","cerrojo","césped","cesto","cetro","chal","chaleco","chalet","champiñón","chándal","chaparral","chaparrón","charco","chasquido","chicle","chirrido","chocolate","chopo","chorro","chupete","ciclón","cielo","ciervo","cigarro","cigüeñal","cilantro","cilindro","cimiento","cincel","cine","cinturón","ciprés","circo","circuito","círculo","cirio","ciruelo","cisne","clarín","clarinete","claustro","clavel","clavo","clima","cobertizo","cobijo","cobre","coche","cocido","coco","cocodrilo","codo","cofre","cogollo","cohete","cojín","colador","colchón","colegio","colgante","colibrí","collar","colmado","colmenar","colmillo","columpio","comedero","comedor","comino","compás","compresor","concierto","condimento","cóndor","conducto","congelador","consomé","contenedor","contrabajo","convento","copo","coral","corazón","corcel","corcho","cordel","cordero","cordón","corral","corsé","cortijo","corzo","costado","costal","coto","coyote","cráneo","cráter","criadero","crisol","cristal","cronómetro","croquis","crucero","cuaderno","cuadrante","cuadro","cuartel","cuarzo","cubículo","cubo","cucharón","cuchillo","cucurucho","cuenco","cuerno","cuero","cuerpo","cuervo","cultivo","cúmulo","cuscús","dado","damasco","decorado","dedal","dedo","delantal","delfín","depósito","derrumbe","desagüe","desayuno","desfile","deshielo","desierto","despacho","destello","desván","dial","diamante","diario","dibujo","diente","diluvio","dintel","dique","dirigible","disco","disfraz","diván","dobladillo","dominó","dormitorio","dorso","dosel","dragón","drenaje","duende","ébano","eclipse","edificio","eje","elefante","elixir","embalse","emblema","embudo","embutido","empedrado","encaje","encendedor","enchufe","enebro","engranaje","enjambre","enrejado","ensanche","entramado","entresuelo","envase","envío","envoltorio","equipaje","erizo","esbozo","escabeche","escalón","escaparate","escarabajo","escenario","escombro","escorpión","escritorio","escudo","esmalte","espárrago","espejismo","espejo","espinazo","espino","espolón","esquí","establo","estadio","estambre","estanco","estandarte","estanque","estante","estero","estilete","estío","estofado","estribo","estropajo","estuario","estuche","eucalipto","extintor","faisán","fajo","fantasma","fardo","faro","farol","felpudo","festín","fichero","ficus","fideo","fieltro","filete","filón","filtro","flamenco","flan","flequillo","florero","flotador","foco","fogón","follaje","folleto","fondo","forjado","forraje","forro","fortín","foso","frasco","freno","fresno","friso","frontal","frontón","fruto","fuego","fuelle","fulgor","fuselaje","fusible","gabinete","gajo","galgo","gallinero","gallo","galope","galpón","gamo","ganado","gancho","ganso","garabato","garaje","garbanzo","garfio","garito","garrafón","gasoducto","gato","gavilán","gazpacho","gemelo","germen","gimnasio","girasol","giro","glaciar","globo","gnomo","golfo","gong","gorrión","gorro","granado","granero","granito","granizado","granizo","grano","grifo","grillo","guante","guepardo","guijarro","guisado","guisante","guiso","habano","halcón","hámster","hangar","hatillo","hato","haz","helecho","hemisferio","heno","hidrante","hierro","higo","hilo","hinojo","hipocampo","hisopo","hito","hocico","hogar","hojaldre","hollín","hombro","hongo","horizonte","hormigón","hormiguero","hornillo","horno","hospital","hostal","hotel","huerto","hueso","hule","humedal","huracán","hurón","ibis","iglú","imán","imperdible","incienso","injerto","inodoro","insecto","instituto","invierno","islote","istmo","jabalí","jabón","jacinto","jade","jaguar","jamón","jarabe","jardín","jarrón","jazmín","jengibre","jersey","jilguero","jornal","juego","juguete","junco","kiwi","koala","laberinto","ladrillo","lagar","lagarto","lago","lapicero","lápiz","lastre","latido","latón","laúd","laurel","lavabo","lavadero","lazo","lecho","legajo","lenguado","leño","león","leopardo","letrero","libro","liceo","licor","lienzo","ligamento","limbo","limón","limonero","lince","lingote","linóleo","liquen","lirio","listón","litoral","llavero","lobezno","lobo","local","lodo","lomo","loro","lote","lucero","lucio","lunar","lúpulo","lustre","madero","madroño","maíz","malecón","maletero","maletín","mamífero","mamut","manantial","manatí","mandil","mando","mandril","manglar","mango","manguito","manillar","manojo","mantel","manto","manual","manuscrito","manzano","mapa","mapache","maquillaje","marco","marfil","marisco","mármol","martillo","mástil","matorral","mazapán","mazo","mecanismo","mechero","mechón","medallón","medidor","mediodía","melocotón","membrete","membrillo","menú","mercadillo","mercado","merengue","meridiano","mesón","metal","meteorito","micrófono","microondas","miembro","mijo","milano","mimbre","mineral","mirador","mirlo","mirto","mobiliario","mochuelo","modelo","molde","molinete","molinillo","molino","monasterio","monedero","monigote","mono","monolito","monopatín","montaje","montante","montículo","monumento","morral","mortero","mosaico","mosquitero","mosquito","mostacho","mostrador","motor","muelle","muérdago","mural","murciélago","muro","museo","musgo","muslo","nácar","nacimiento","naipe","naranjal","naranjo","narciso","navío","néctar","nervio","neumático","nido","níquel","nogal","nopal","novillo","nudo","oasis","obelisco","oboe","obrador","ocaso","océano","oeste","oleaje","olivar","olivo","olmo","ombligo","orégano","órgano","orificio","ornamento","oso","óvalo","ovillo","oxígeno","pabellón","paisaje","pajar","pájaro","palacio","paladar","palco","palillo","palmar","palmito","palo","palomar","pan","panal","panda","panecillo","pantalón","pantano","pañuelo","papagayo","papel","papiro","paquete","paracaídas","paraguas","paraíso","páramo","pararrayos","parasol","parche","parque","párrafo","pasadizo","pasador","pasaje","pasamanos","pasaporte","pasillo","paso","pastel","patín","patinete","patio","pato","pavimento","pavo","peaje","pedal","pedazo","pedernal","pedestal","peine","peldaño","pelícano","pellejo","pellizco","pelotón","penacho","pendiente","peñasco","peñón","peral","perchero","perejil","perfil","perfume","pergamino","periódico","periquito","periscopio","perol","perro","pescado","pesebre","pesquero","pestillo","pétalo","pez","piano","picadero","picaporte","pichón","pico","pie","pienso","pijama","pilar","pilón","pimentón","pimiento","pináculo","pinar","pincel","pinchazo","pingüino","pino","pinzón","piñón","piropo","piso","pistacho","pisto","pitillo","pivote","planeta","planetario","plantel","plantío","platillo","plato","plomo","plumaje","plumero","plumón","podio","polen","pollo","polluelo","polvorín","pomelo","pomo","ponche","pontón","porche","poro","portafolio","portal","pórtico","portón","poste","postigo","potaje","potrero","potro","pozo","prado","precinto","predio","premio","prisma","puchero","pueblo","puente","puerro","puerto","pulgar","pulmón","pulpo","pulso","puma","puntal","puñado","pupitre","puré","quemador","queso","quicio","quiosco","quirófano","rábano","racimo","radar","radiador","ramillete","ramo","rancho","rasguño","rastrillo","rastro","ratón","rayo","rebaño","rebozo","recibidor","recibo","recinto","reclamo","recodo","recorte","redil","redoble","reflector","refugio","regadío","regaliz","regalo","regazo","reguero","relámpago","relicario","relieve","rellano","relleno","reloj","remanso","remo","remolcador","remolino","remolque","renacuajo","reno","repollo","reportaje","repuesto","requesón","resguardo","resorte","respaldo","resplandor","retablo","retrato","retrovisor","revoque","riachuelo","riego","rincón","río","risco","rizo","roble","robot","rocío","rodillo","rollo","romero","rompeolas","ropero","rosal","rosario","rosco","rostro","rotulador","rótulo","rubí","ruedo","ruido","ruiseñor","rumbo","sabor","sacapuntas","saco","salchichón","salero","salmón","salón","salvado","sanatorio","sándalo","santuario","sarmiento","satélite","sauce","saxofón","secador","secante","sedal","segmento","sello","semáforo","semblante","sembrado","sendero","serrín","serrucho","seto","sifón","silbato","silbido","sillón","silo","sirope","sobre","socavón","sofá","sofrito","solar","solomillo","solsticio","sombrero","sonajero","sondeo","soplete","soplo","soporte","sorbete","sorbo","sótano","submarino","subsuelo","suelo","surco","surtidor","susurro","tabaco","tabique","tablero","tablón","taburete","taco","tacón","tajo","taladro","talco","taller","tallo","talón","talud","tamarindo","tambor","tamiz","tapete","tapiz","tapón","tarro","taxi","tazón","teatro","techo","teclado","tejado","tejar","tejo","tejón","telar","teléfono","telégrafo","telescopio","telón","témpano","templo","temporal","tenedor","tentempié","terciopelo","termo","termómetro","terraplén","terreno","terrón","tesoro","tiburón","tiesto","tifón","tigre","tilo","timbal","timbre","timón","tímpano","tinglado","tinte","tintero","tirador","tirón","tobillo","tobogán","tocadiscos","tocador","toldo","tomate","tomillo","tomo","tonel","topacio","tope","topo","torbellino","tordo","tornillo","torno","toro","torrente","torreón","tostador","tractor","traje","tramo","trampolín","tranvía","trapecio","trapo","trastero","travesaño","trayecto","trébol","trecho","tren","triángulo","triciclo","trigal","trigo","trillo","trineo","trino","trinquete","trípode","tritón","triturador","trombón","trompo","tronco","trono","tropel","trozo","trueno","tubérculo","tubo","tucán","tuétano","tulipán","túnel","turbante","turrón","ultramar","umbral","ungüento","unicornio","utensilio","vagón","vaivén","valle","vals","vapor","vaso","vástago","vecindario","vehículo","velador","velero","vellón","velo","venado","vendaje","vendaval","ventanal","ventilador","verdor","vergel","vertedero","vestíbulo","vestido","vestuario","viaducto","viaje","vidrio","viento","vientre","vinagre","vinilo","vino","viñedo","violín","viraje","visor","vistazo","vivero","volante","volcán","vórtice","yacimiento","yate","yelmo","yeso","yogur","yugo","yunque","zafiro","zaguán","zapato","zócalo","zoco","zoológico","zorro","zumbido","zumo"],"femeninos":["abadía","abeja","abertura","abrazadera","acacia","aceitera","aceituna","acelga","acequia","acera","achicoria","acuarela","aduana","agenda","agua","aguja","alacena","alambrada","alameda","alarma","albahaca","alberca","albufera","alcachofa","alcoba","aldea","aleta","alfalfa","alfarería","alfombra","alforja","almendra","almohada","alondra","alpaca","alquería","altura","amapola","amatista","ampolla","anaconda","anchoa","ancla","andanada","anguila","anilla","antena","antesala","antorcha","aorta","apertura","araña","arboleda","arcada","arcilla","ardilla","arena","argamasa","argolla","armadura","armónica","arpa","arpillera","arruga","arteria","asa","aspa","aspiradora","astilla","atalaya","aula","aurora","autopista","avellana","avena","avenida","avioneta","avispa","azada","azalea","azotea","azucarera","azucena","bahía","baldosa","balsa","banca","banda","bandada","bandeja","bandera","bandolera","banqueta","bañera","baranda","barandilla","barbacoa","barbilla","barca","barcaza","barraca","barrera","barriada","barrica","báscula","bata","batería","batidora","batuta","baya","bellota","biblioteca","bicicleta","biela","billetera","bisagra","bisutería","blusa","bobina","boca","bocina","bodega","boina","bola","bolsa","bombilla","bombona","boquilla","borla","bota","botella","botica","bóveda","boya","brasa","brecha","brida","brigada","brisa","broca","brocha","broma","brújula","bruma","bufanda","buhardilla","bujía","burbuja","butaca","caballa","cabaña","cabecera","cabellera","cabina","cacerola","cadena","cadera","cafetera","cafetería","calabaza","calandria","caldera","caleta","caligrafía","calleja","calzada","cama","camada","cámara","camelia","camilla","camioneta","camisa","camiseta","campana","campanilla","campiña","canaleta","canasta","candela","canela","canica","canilla","canoa","cantera","caña","cañada","capa","capilla","capota","capucha","cara","carabela","caracola","caravana","carbonera","carcasa","careta","carga","caricia","carnicería","carpa","carpeta","carraca","carreta","carretera","carretilla","carroza","cartera","cartilla","cartulina","casa","cascada","cáscara","caseta","casona","castaña","catapulta","catarata","catedral","cava","cazadora","cazuela","cebada","cebolla","cebolleta","cebra","ceja","celda","ceniza","cepa","cerámica","cerca","cereza","cerilla","cerradura","cerveza","cesta","chancla","chapa","chaqueta","charca","chimenea","chinchilla","chirimoya","chistera","choza","chuleta","ciénaga","cierva","cigarra","cigüeña","cima","cinta","cintura","ciruela","cisterna","ciudad","ciudadela","clavija","clementina","clínica","cloaca","cobertura","cobra","cochera","cocina","codorniz","cofradía","col","cola","colada","colcha","coleta","coliflor","colilla","colina","colmena","columna","comadreja","cometa","comida","compota","compuerta","conserva","consola","copa","copla","coraza","corbata","cordillera","cornamenta","corneta","cornisa","corona","correa","corriente","corteza","cortina","cosecha","costa","costilla","costra","coyuntura","cresta","criba","crin","croqueta","cuadra","cuadrilla","cubeta","cuchara","cucharilla","cuchilla","cuenca","cuerda","cueva","culata","culebra","cumbre","cuna","cuneta","cúpula","curva","dalia","dársena","dehesa","dentadura","despensa","destilería","diadema","diana","draga","droguería","ducha","duna","embajada","empalizada","empanada","encía","encimera","encina","ensalada","ensenada","entrada","ermita","escalera","escalinata","escama","escarapela","escarcha","esclusa","escoba","escotilla","escuadra","escuela","escultura","esfera","esmeralda","espadaña","espalda","espátula","especia","espiga","espina","espinaca","espiral","esponja","espuela","espuma","esquila","esquina","estaca","estampa","estampilla","estancia","estantería","estatua","estela","estepa","estera","estrella","estufa","etiqueta","explanada","fábrica","fachada","faja","falda","farmacia","farola","ferretería","fibra","ficha","fiesta","figura","fila","filigrana","finca","flauta","flecha","flor","floresta","flota","fogata","fontanería","fortaleza","fosa","fragata","frambuesa","franja","frazada","fregona","freidora","fresa","frontera","fruta","frutería","fuente","fuerza","funda","furgoneta","gabardina","gacela","gaita","galería","galleta","gallina","gamba","gamuza","ganadería","garganta","garita","garra","garrafa","garza","gasa","gasolina","gaveta","gaviota","gelatina","gema","glorieta","golondrina","golosina","goma","góndola","gorra","gota","grada","grama","granada","granja","grapa","grieta","grúa","grulla","gruta","guantera","guardería","guarida","guayaba","guía","guinda","guirnalda","guitarra","haba","hacha","hacienda","hamaca","harina","haya","hebilla","hebra","heladera","heladería","hélice","hendidura","herradura","hiedra","hierba","higuera","hilera","hoguera","hoja","hojarasca","hondonada","horchata","hormiga","hornacina","horquilla","hortaliza","hortensia","hoya","hoz","hucha","huella","huerta","hulla","humareda","iglesia","iguana","imprenta","isla","jabalina","jalea","jara","jarana","jarra","jaula","jirafa","joroba","joyería","judía","juguetería","jungla","laca","ladera","lagartija","laguna","lámina","lámpara","lancha","langosta","lanzadera","lasaña","lata","lavadora","lavanda","lavandería","leche","lechuga","lechuza","legumbre","lejía","lengua","lente","lenteja","leña","libélula","librería","libreta","licuadora","liebre","ligadura","lima","limonada","linterna","lira","lista","litera","llama","llanta","llanura","llave","lluvia","locomotora","loma","lombarda","lombriz","lona","lonja","losa","lubina","lucerna","luciérnaga","lumbre","luna","lupa","maceta","madeja","madera","madreselva","madriguera","madrugada","magdalena","magnolia","maleta","maleza","malla","malva","mampara","manada","mancha","mandarina","mandíbula","mandolina","manga","manguera","maniobra","manivela","manta","mantilla","mantis","manzana","manzanilla","maqueta","maquinaria","maraca","maraña","marea","margarita","marina","mariposa","marisma","marmota","marquesina","masa","mascota","masía","mata","matrícula","mazorca","mecedora","mecha","medalla","medusa","mejilla","melaza","melena","melodía","membrana","mensajería","menta","mercería","merienda","merluza","mermelada","mesa","meseta","mesilla","mezcla","mezquita","miel","miga","mimosa","mina","mirilla","mochila","moldura","molienda","moneda","montaña","montera","montura","moqueta","mora","morcilla","mosca","mostaza","muela","muesca","muleta","muñeca","muralla","naranja","nariz","nata","navaja","nave","neblina","nevada","nevera","niebla","nieve","noche","noria","novela","nube","nuez","nutria","oca","oficina","ola","oliva","olla","onda","orca","oreja","orilla","orquesta","orquídea","ortiga","oruga","ostra","oveja","paella","pagoda","pajarita","pala","palabra","palanca","palangana","paleta","palma","palmera","paloma","pana","panadería","pandereta","panera","pantalla","pantera","papaya","papelera","papelería","papeleta","parcela","pared","pareja","parra","parrilla","parroquia","partitura","pasarela","pasta","pastelería","pastilla","pata","patata","patilla","peana","pecera","pechera","pedrera","peineta","peluca","peluquería","pelusa","península","penumbra","peña","pera","percha","perdiz","pérgola","perla","perrera","persiana","pesca","pescadería","pestaña","petaca","petunia","pezuña","piedra","piel","pierna","pila","pileta","pimienta","pincelada","pinta","pintura","pinza","piña","pipa","pipeta","piragua","pirámide","piruleta","pisada","piscina","pista","pizarra","pizza","placa","plancha","planicie","planta","plantilla","plata","plataforma","playa","plaza","plazuela","pluma","polea","polilla","polvareda","pomada","pompa","popa","porcelana","portada","portería","posada","postal","pradera","prenda","presa","proa","puerta","pulga","pulsera","punta","puntilla","quilla","quinta","ráfaga","raíz","rama","rampa","rana","ranura","raqueta","ratonera","rebanada","rebeca","receta","red","redoma","refinería","regadera","reja","rejilla","relojería","remolacha","rendija","repisa","represa","resina","retama","revista","ribera","rienda","rodaja","rodilla","romería","ropa","rosa","rosca","roseta","rueda","ruina","sábana","sacristía","sal","salamandra","salina","salmuera","salsa","salvia","sandalia","sandía","sardina","sartén","savia","secadora","seda","selva","semilla","senda","sepia","serpentina","serpiente","serranía","servilleta","seta","sidra","siembra","sierra","siesta","silla","silueta","sirena","soga","soja","solapa","solera","sombra","sombrilla","sopa","sopera","sortija","subasta","sudadera","suela","tabla","tableta","tapa","tapadera","tapia","tapicería","taquilla","tarántula","tarima","tarjeta","tarta","taza","techumbre","tela","telaraña","televisión","ternera","terraza","tesorería","tetera","tiara","tibia","tienda","tierra","tijera","tina","tinaja","tinta","tiza","toalla","toga","tolva","tormenta","torre","torreta","tortilla","tortuga","tostada","tostadora","trampa","trampilla","trenza","trinchera","tripa","trocha","trompeta","trucha","trufa","tuba","tuerca","túnica","turbina","ubre","urna","urraca","uva","vacuna","vaguada","vaina","vainilla","vajilla","valla","varilla","vasija","vega","vejiga","vela","veleta","ventana","ventisca","ventosa","verbena","verdura","vereda","verja","vertiente","vía","vidriera","vieira","viga","viña","viñeta","viruta","visera","vitrina","vivienda","voltereta","vuelta","yegua","yema","yerba","yuca","zanahoria","zanja","zapatería","zapatilla","zarza","zarzuela"]},"adjetivos":["abierto","abundante","acolchado","adornado","afilado","afortunado","ágil","agitado","agradable","agrietado","agrio","agudo","ahumado","airoso","aislado","ajustado","alado","alargado","alegre","alineado","alocado","altivo","alto","amable","amargo","amarillo","amistoso","amplio","anaranjado","ancho","anclado","angosto","angular","animado","antiguo","añejo","apacible","apagado","apetitoso","arbolado","arcilloso","ardiente","arenoso","armonioso","aromático","arqueado","arrugado","ártico","áspero","astuto","atareado","atento","atractivo","atrevido","audaz","austero","azul","azulado","bajo","barnizado","barroco","bello","blanco","blando","borroso","boscoso","bravo","breve","brillante","bronceado","brumoso","bullicioso","cálido","callado","calmado","caluroso","cambiante","campestre","carmesí","carnoso","casero","castaño","cavernoso","celeste","ceñido","cercano","cerrado","certero","chispeante","cilíndrico","circular","claro","cobrizo","colorido","colosal","compacto","común","concreto","constante","contento","cordial","cortante","cortés","corto","cósmico","costoso","cremoso","crespo","cristalino","cromado","crudo","crujiente","cuadrado","cubierto","cuidadoso","curioso","curvado","delicado","denso","dentado","derecho","derretido","despejado","despierto","diáfano","dichoso","difuso","digno","diminuto","discreto","dócil","dorado","dormido","dulce","duro","ecuestre","elástico","elegante","elevado","empapado","empinado","emplumado","encantado","encarnado","encendido","enlatado","enorme","enrollado","erguido","errante","esbelto","escamoso","escarpado","escaso","escondido","esférico","esmaltado","esmerado","espacioso","espeso","espinoso","espumoso","esquivo","estampado","estival","estrecho","estrellado","estriado","eterno","exacto","extenso","fabuloso","famoso","fangoso","fantástico","fecundo","feliz","feroz","férreo","fértil","festivo","fibroso","fiel","fiero","fino","firme","flamante","flexible","floral","florido","flotante","fluvial","forrado","fragante","frágil","franco","fresco","frío","frondoso","frutal","fuerte","fugaz","funcional","gaseoso","gélido","gentil","gigante","gigantesco","glacial","glaseado","glorioso","gótico","grabado","gracioso","granate","grande","granulado","grasiento","grato","grave","gris","grisáceo","grueso","hábil","hambriento","helado","hermoso","heroico","hinchado","hirviente","histórico","hondo","honesto","horizontal","hueco","húmedo","humilde","iluminado","ilustrado","inclinado","incoloro","inmenso","inmóvil","intacto","intenso","invernal","invisible","jaspeado","joven","jovial","jugoso","justo","labrado","lacio","laminado","lanudo","largo","lechoso","lejano","lento","leve","libre","ligero","limpio","líquido","liso","listado","listo","llamativo","llano","lozano","lúcido","luminoso","lustroso","macizo","maduro","mágico","magro","majestuoso","manchado","manso","marchito","marino","marrón","mate","mecánico","medieval","menudo","metálico","minero","minúsculo","místico","moderno","mohoso","mojado","montañoso","moteado","mullido","musical","natural","navegable","negro","nevado","nítido","noble","nocturno","nórdico","nublado","nuboso","nuevo","numeroso","nutritivo","oblicuo","oculto","oloroso","ondulado","opaco","ordenado","orgulloso","oscuro","otoñal","ovalado","oxidado","pacífico","pajizo","pálido","palpable","pardo","parejo","parlanchín","pastoso","peludo","pequeño","perenne","perfecto","perfumado","perlado","permanente","perpetuo","pesado","picante","pícaro","pintado","pintoresco","plácido","plano","plateado","plegable","pleno","plomizo","poblado","poderoso","polar","poroso","portátil","potente","precioso","preciso","primaveral","prodigioso","profundo","pronto","próspero","prudente","pulcro","pulido","puntiagudo","puntual","punzante","puro","quebrado","quieto","radiante","rallado","rancio","rápido","raro","rasgado","rayado","real","rebelde","rebosante","recio","recto","redondo","refinado","reforzado","relajado","reluciente","remoto","repleto","resistente","resuelto","retorcido","revuelto","rico","rígido","risueño","rizado","robusto","rocoso","rojizo","rojo","romo","rosado","rotundo","rugoso","ruidoso","rural","rústico","sabio","sabroso","sagaz","salado","salpicado","saltarín","salvaje","sano","satinado","seco","secreto","sedoso","seguro","selecto","sencillo","sensato","sereno","serrano","severo","sigiloso","silvestre","simple","sincero","sinuoso","sobrio","soleado","sólido","solitario","soluble","sombreado","sombrío","somero","sonoro","sonriente","suave","sublime","suelto","suntuoso","sutil","tallado","templado","tenaz","tendido","tenue","teñido","terroso","tibio","tierno","tieso","tímido","tirante","torcido","tosco","tostado","total","trabajado","tranquilo","travieso","trenzado","triturado","tropical","tupido","turbio","uniforme","urbano","útil","vacío","valiente","valioso","variado","vasto","veloz","venerable","veraniego","verde","verdoso","vertical","vetusto","viajero","vidriado","viejo","vigoroso","violáceo","violeta","visible","vistoso","vivaz","vivo","volátil","yermo"],"alfabetos":{"minusculas":"abcdefghijklmnopqrstuvwxyz","mayusculas":"ABCDEFGHIJKLMNOPQRSTUVWXYZ","numeros":"0123456789","simbolos":"!@#$%\u0026*+-=?_.:;()[]{}"},"parecidos":"iIl1LoO0","simbolosMemorizable":"!#$%*+=?","separadores":"-._+*/:=","nucleoCifras":"0123456789","nucleoAlfanumerico":"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789","politica":{"longitudMinima":16,"tiposMinimos":4,"reintentos":1000},"loteMaximo":200,"longitudAleatoria":50,"pruebasPorSegundo":1000000000}</script>
+<script>/*
+ * Motor del generador — versión del navegador.
+ *
+ * Aquí es donde nacen las contraseñas de la página. No se envía nada al
+ * servidor: el diccionario llega dentro del HTML, esto lo lee y compone la
+ * clave en la memoria del equipo del usuario.
+ *
+ * La aleatoriedad sale de crypto.getRandomValues, el generador criptográfico
+ * del navegador. Math.random() no sirve para esto: es rápido y uniforme, pero
+ * predecible a partir de unas cuantas salidas.
+ *
+ * Es la traducción de src/generador.php, con la misma lógica y los mismos
+ * valores (ambos leen src/config.php). No toca el documento: recibe datos y
+ * devuelve cadenas y números. De la página se ocupa interfaz.js.
+ */
+
+window.Generador = (function () {
+  'use strict';
+
+  var datos = null;   // diccionario, alfabetos y límites; lo pone cargar()
+
+  function cargar(configuracion) {
+    datos = configuracion;
+  }
+
+  // --- aleatoriedad ---------------------------------------------------------
+
+  /*
+   * Entero uniforme en [0, tope).
+   *
+   * El resto de una división (v % tope) reparte mal cuando tope no divide a
+   * 2^32: los primeros valores salen un pelín más veces. Se descartan los
+   * números por encima del último múltiplo entero y se vuelve a tirar.
+   */
+  var reserva = new Uint32Array(1);
+
+  function azar(tope) {
+    var limite = Math.floor(4294967296 / tope) * tope;
+    var valor;
+
+    do {
+      crypto.getRandomValues(reserva);
+      valor = reserva[0];
+    } while (valor >= limite);
+
+    return valor % tope;
+  }
+
+  function elegir(lista) {
+    return lista[azar(lista.length)];
+  }
+
+  // --- utilidades de texto --------------------------------------------------
+
+  function quitarTildes(texto) {
+    return texto
+      .replace(/ñ/g, '')
+      .replace(/Ñ/g, '')
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(//g, 'n')
+      .replace(//g, 'N');
+  }
+
+  function capitalizar(palabra) {
+    return palabra.charAt(0).toUpperCase() + palabra.slice(1);
+  }
+
+  /*
+   * Concuerda el adjetivo en femenino. Cubre las dos terminaciones que aparecen
+   * en el diccionario: -o pasa a -a (seco/seca) e -ín pasa a -ina
+   * (parlanchín/parlanchina). El resto son invariables: amable, veloz, cortés.
+   */
+  function feminizar(adjetivo) {
+    if (adjetivo.slice(-1) === 'o') {
+      return adjetivo.slice(0, -1) + 'a';
+    }
+
+    if (adjetivo.slice(-2) === 'ín') {
+      return adjetivo.slice(0, -2) + 'ina';
+    }
+
+    return adjetivo;
+  }
+
+  // --- modo aleatorio -------------------------------------------------------
+
+  /*
+   * Devuelve una clase de caracteres por cada tipo marcado. Se mantienen
+   * separadas porque el generador reserva una posición a cada una: así la clave
+   * cumple siempre la política del dominio sin tener que reintentar.
+   */
+  function clasesDeCaracteres(opciones) {
+    var alfabetos = datos.alfabetos;
+    var clases = [];
+
+    if (opciones.minusculas) { clases.push(alfabetos.minusculas); }
+    if (opciones.mayusculas) { clases.push(alfabetos.mayusculas); }
+    if (opciones.numeros)    { clases.push(alfabetos.numeros); }
+    if (opciones.simbolos)   { clases.push(alfabetos.simbolos); }
+
+    if (opciones.sinParecidos) {
+      var fuera = new RegExp('[' + datos.parecidos.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&') + ']', 'g');
+      clases = clases
+        .map(function (clase) { return clase.replace(fuera, ''); })
+        .filter(function (clase) { return clase !== ''; });
+    }
+
+    return clases;
+  }
+
+  function aleatoria(opciones) {
+    var clases = clasesDeCaracteres(opciones);
+
+    if (clases.length === 0) {
+      throw new Error('No queda ningún carácter disponible.');
+    }
+
+    var alfabeto = clases.join('');
+    var caracteres = [];
+    var i;
+
+    for (i = 0; i < clases.length; i++) {
+      caracteres.push(elegir(clases[i]));
+    }
+
+    for (i = caracteres.length; i < opciones.longitud; i++) {
+      caracteres.push(elegir(alfabeto));
+    }
+
+    // Barajado de Fisher-Yates, para que las posiciones reservadas no queden
+    // siempre al principio.
+    for (i = caracteres.length - 1; i > 0; i--) {
+      var j = azar(i + 1);
+      var guardado = caracteres[i];
+      caracteres[i] = caracteres[j];
+      caracteres[j] = guardado;
+    }
+
+    return caracteres.slice(0, opciones.longitud).join('');
+  }
+
+  // --- modo memorizable -----------------------------------------------------
+
+  function alfabetoNucleo(nombre) {
+    return nombre === 'alfanumerico' ? datos.nucleoAlfanumerico : datos.nucleoCifras;
+  }
+
+  /* El núcleo aleatorio es el trozo que aporta los bits; las palabras son el
+     andamio que permite recordarlo. Devuelve '' si no se ha pedido ninguno. */
+  function generarNucleo(opciones) {
+    if (!opciones.nucleo || opciones.nucleo < 1) {
+      return '';
+    }
+
+    var alfabeto = alfabetoNucleo(opciones.nucleoAlfabeto);
+    var nucleo = '';
+    var i;
+
+    for (i = 0; i < opciones.nucleo; i++) {
+      nucleo += elegir(alfabeto);
+    }
+
+    return nucleo;
+  }
+
+  /* Hueco donde va el núcleo: 0 es antes de la primera palabra y `palabras`
+     es después de la última. Sortearlo suma log2(palabras + 1) bits, 1,58 con
+     dos palabras: poco, y lo que se gana en bits se paga en memoria, pero es
+     una elección real y entra en el cálculo. */
+  function posicionNucleo(opciones, palabras) {
+    switch (opciones.nucleoPosicion) {
+      case 'inicio': return 0;
+      case 'medio':  return Math.floor(palabras / 2);
+      case 'azar':   return azar(palabras + 1);
+      default:       return palabras;
+    }
+  }
+
+  function memorizable(opciones) {
+    var sustantivos = datos.sustantivos.masculinos.concat(datos.sustantivos.femeninos);
+    var corte = datos.sustantivos.masculinos.length;   // de aquí en adelante, femeninos
+
+    var conAdjetivo = opciones.estilo === 'sustantivo_adjetivo';
+    var piezas = new Array(opciones.palabras);
+    var usados = {};
+    var femenino = false;
+    var i, k;
+
+    for (i = 0; i < opciones.palabras; i++) {
+      if (conAdjetivo && i === 1) {
+        continue;   // este hueco lo ocupa el adjetivo
+      }
+
+      do {
+        k = azar(sustantivos.length);
+      } while (usados[k]);
+
+      usados[k] = true;
+      piezas[i] = sustantivos[k];
+
+      if (i === 0) {
+        femenino = k >= corte;
+      }
+    }
+
+    if (conAdjetivo) {
+      var adjetivo = elegir(datos.adjetivos);
+      piezas[1] = femenino ? feminizar(adjetivo) : adjetivo;
+    }
+
+    piezas = piezas.map(function (pieza, indice) {
+      var capitalizarla = opciones.mayusculas === 'cada'
+        || (opciones.mayusculas === 'primera' && indice === 0)
+        || (opciones.separador === '' && indice > 0);   // sin separador, la mayúscula marca dónde empieza cada palabra
+
+      return capitalizarla ? capitalizar(pieza) : pieza;
+    });
+
+    // El núcleo se intercala como una pieza más, así que queda separado igual
+    // que las palabras: Farola-7kQ2-Seca, no Farola-Seca7kQ2.
+    var nucleo = generarNucleo(opciones);
+
+    if (nucleo !== '') {
+      piezas.splice(posicionNucleo(opciones, piezas.length), 0, nucleo);
+    }
+
+    var clave = unirPiezas(piezas, opciones.separador);
+
+    if (opciones.simbolo) {
+      clave += elegir(datos.simbolosMemorizable);
+    }
+
+    return opciones.sinTildes ? quitarTildes(clave) : clave;
+  }
+
+  /*
+   * Une las piezas con el separador pedido. «azar_clave» sortea uno para toda
+   * la clave (Farola+Seca+Tren) y «azar_hueco» uno distinto en cada hueco
+   * (Farola+Seca/Tren); cualquier otro valor se usa tal cual.
+   */
+  function unirPiezas(piezas, separador) {
+    if (separador === 'azar_clave') {
+      return piezas.join(elegir(datos.separadores));
+    }
+
+    if (separador !== 'azar_hueco') {
+      return piezas.join(separador);
+    }
+
+    return piezas.reduce(function (clave, pieza) {
+      return clave + elegir(datos.separadores) + pieza;
+    });
+  }
+
+  /* Bits que suma el separador: solo cuenta si se sortea. */
+  function entropiaSeparador(opciones) {
+    var huecos = opciones.palabras - 1 + (opciones.nucleo > 0 ? 1 : 0);
+    var bits = Math.log2(datos.separadores.length);
+
+    if (opciones.separador === 'azar_clave') { return bits; }
+    if (opciones.separador === 'azar_hueco') { return huecos * bits; }
+
+    return 0;
+  }
+
+  // --- política del dominio --------------------------------------------------
+
+  /*
+   * Tipos de carácter de la clave, tal como los cuenta Lithnet: minúsculas,
+   * mayúsculas, números y símbolos (todo lo que no es letra ni cifra; el guion
+   * del separador cuenta como símbolo). Una vocal con tilde es una letra.
+   */
+  function tiposDeCaracter(clave) {
+    return {
+      minusculas: /\p{Ll}/u.test(clave),
+      mayusculas: /\p{Lu}/u.test(clave),
+      numeros: /\p{Nd}/u.test(clave),
+      simbolos: /[^\p{L}\p{Nd}]/u.test(clave)
+    };
+  }
+
+  /*
+   * Motivos por los que el dominio rechazaría la clave por longitud o
+   * complejidad; lista vacía si la cumple. No mira la lista de contraseñas
+   * filtradas ni la de palabras prohibidas de Lithnet: esas solo las tiene el
+   * controlador de dominio.
+   *
+   * `longitudMinima` es opcional: si no se pasa, vale la del dominio.
+   */
+  function incumplimientosPolitica(clave, longitudMinima) {
+    var politica = datos.politica;
+    var minimo = longitudMinima || politica.longitudMinima;
+    var fallos = [];
+    var longitud = Array.from(clave).length;
+
+    if (longitud < minimo) {
+      fallos.push('tiene ' + longitud + ' caracteres y hacen falta ' + minimo);
+    }
+
+    var tipos = tiposDeCaracter(clave);
+    var nombres = { minusculas: 'minúscula', mayusculas: 'mayúscula', numeros: 'número', simbolos: 'símbolo' };
+    var faltan = Object.keys(tipos).filter(function (tipo) { return !tipos[tipo]; });
+    var tiene = 4 - faltan.length;
+
+    if (tiene < politica.tiposMinimos) {
+      fallos.push('tiene ' + tiene + ' tipos de carácter y hacen falta ' + politica.tiposMinimos
+        + ' (falta: ' + faltan.map(function (tipo) { return nombres[tipo]; }).join(', ') + ')');
+    }
+
+    return fallos;
+  }
+
+  function cumplePolitica(clave, longitudMinima) {
+    return incumplimientosPolitica(clave, longitudMinima).length === 0;
+  }
+
+  /*
+   * Fracción de claves memorizables que cumplen la política con estos ajustes,
+   * medida sacando una muestra.
+   *
+   * Hace falta para que la barra no mienta: descartar las claves cortas reduce
+   * las combinaciones posibles. Si solo vale una de cada cuatro, se pierden 2
+   * bits. Con los ajustes por defecto la tasa es 1 y no se pierde nada.
+   */
+  function tasaAceptacion(opciones, muestras) {
+    var total = muestras || 2000;
+    var validas = 0;
+    var i;
+
+    for (i = 0; i < total; i++) {
+      if (cumplePolitica(memorizable(opciones), opciones.longitudMinima)) {
+        validas++;
+      }
+    }
+
+    return validas / total;
+  }
+
+  /*
+   * Clave que cumple la política del dominio.
+   *
+   * Si sale una que no la cumple (en la práctica, palabras muy cortas con pocas
+   * palabras), se descarta y se saca otra: así el resultado sigue siendo
+   * uniforme entre las claves válidas, y recortar o rellenar la clave la haría
+   * predecible. Si los ajustes no permiten cumplirla nunca, devuelve la última
+   * con la marca puesta, para avisar en vez de dar vueltas para siempre.
+   *
+   * `aceptar` es una condición adicional opcional (no contener el usuario).
+   */
+  function valida(opciones, aceptar) {
+    var fabricar = opciones.modo === 'aleatoria' ? aleatoria : memorizable;
+    var clave;
+    var intento;
+
+    for (intento = 1; intento <= datos.politica.reintentos; intento++) {
+      clave = fabricar(opciones);
+
+      if (cumplePolitica(clave, opciones.longitudMinima) && (!aceptar || aceptar(clave))) {
+        return { clave: clave, cumple: true };
+      }
+    }
+
+    return { clave: clave, cumple: cumplePolitica(clave, opciones.longitudMinima) };
+  }
+
+  // --- claves para un usuario concreto ---------------------------------------
+
+  /*
+   * Trozos del nombre de cuenta que Active Directory no admite dentro de la
+   * clave: el nombre entero o cualquier pedazo de tres o más caracteres,
+   * separando por espacios, comas, puntos, guiones y guiones bajos. Es una de
+   * las causas de rechazo menos evidentes, porque la clave cumple longitud y
+   * complejidad y aun así no entra.
+   */
+  function trozosDelUsuario(usuario) {
+    var cuenta = String(usuario).split('@')[0];   // de un UPN, la parte de la izquierda
+
+    return quitarTildes(cuenta).toLowerCase()
+      .split(/[\s,.\-_#\\]+/)
+      .filter(function (trozo) { return trozo.length >= 3; });
+  }
+
+  function chocaConUsuario(clave, usuario) {
+    var llana = quitarTildes(clave).toLowerCase();
+
+    return trozosDelUsuario(usuario).some(function (trozo) {
+      return llana.indexOf(trozo) !== -1;
+    });
+  }
+
+  /*
+   * Clave para un usuario: cumple la política del dominio y no contiene trozos
+   * de su nombre de cuenta. Reintenta en vez de retocar la clave: retocarla
+   * sesgaría el resultado y restaría entropía.
+   */
+  function paraUsuario(opciones, usuario) {
+    var resultado = valida(opciones, function (clave) {
+      return !chocaConUsuario(clave, usuario);
+    });
+
+    return {
+      clave: resultado.clave,
+      choca: chocaConUsuario(resultado.clave, usuario),
+      cumple: resultado.cumple
+    };
+  }
+
+  // --- entropía -------------------------------------------------------------
+
+  /*
+   * Bits del modo aleatorio: longitud x log2(alfabeto). Reservar una posición
+   * por clase lo baja una fracción de bit; a estas longitudes la diferencia no
+   * cambia ninguna decisión, así que no se descuenta.
+   */
+  function entropiaAleatoria(opciones) {
+    var clases = clasesDeCaracteres(opciones);
+
+    if (clases.length === 0) {
+      return 0;
+    }
+
+    return opciones.longitud * Math.log2(clases.join('').length);
+  }
+
+  /*
+   * Bits del modo memorizable, suponiendo que quien ataca conoce el diccionario
+   * y el formato: es la hipótesis correcta, porque el código de la página está
+   * a la vista. Las mayúsculas no suman, su posición es fija y conocida.
+   */
+  function entropiaMemorizable(opciones) {
+    var totalSustantivos = datos.sustantivos.masculinos.length + datos.sustantivos.femeninos.length;
+    var conAdjetivo = opciones.estilo === 'sustantivo_adjetivo';
+    var cuantos = conAdjetivo ? opciones.palabras - 1 : opciones.palabras;
+    var bits = 0;
+    var i;
+
+    for (i = 0; i < cuantos; i++) {
+      bits += Math.log2(totalSustantivos - i);   // sin repetir palabra
+    }
+
+    if (conAdjetivo) {
+      bits += Math.log2(datos.adjetivos.length);
+    }
+
+    if (opciones.nucleo > 0) {
+      var alfabeto = alfabetoNucleo(opciones.nucleoAlfabeto);
+      var posibles = Math.pow(alfabeto.length, opciones.nucleo);
+
+      // Las palabras no llevan cifras, así que si la política exige número lo
+      // tiene que poner el núcleo, y los núcleos de solo letras se descartan.
+      // Se cuentan únicamente los que llevan alguna cifra.
+      if (datos.politica.tiposMinimos >= 4 && alfabeto === datos.nucleoAlfanumerico) {
+        posibles -= Math.pow(52, opciones.nucleo);
+      }
+
+      bits += Math.log2(posibles);
+
+      // La posición solo suma si de verdad se sortea.
+      if (opciones.nucleoPosicion === 'azar') {
+        bits += Math.log2(opciones.palabras + 1);
+      }
+    }
+
+    bits += entropiaSeparador(opciones);
+
+    if (opciones.simbolo) {
+      bits += Math.log2(datos.simbolosMemorizable.length);
+    }
+
+    return bits;
+  }
+
+  function valorar(bits) {
+    var etiqueta;
+    var clase;
+
+    if (bits < 40)      { etiqueta = 'Baja';     clase = 'baja'; }
+    else if (bits < 60) { etiqueta = 'Ajustada'; clase = 'ajustada'; }
+    else if (bits < 80) { etiqueta = 'Correcta'; clase = 'correcta'; }
+    else                { etiqueta = 'Muy alta'; clase = 'alta'; }
+
+    return {
+      etiqueta: etiqueta,
+      clase: clase,
+      // El ancho viaja como clase de CSS y no como estilo en línea, para que la
+      // política de contenidos pueda prohibir los estilos incrustados.
+      porcentaje: Math.round(Math.min(100, bits) / 5) * 5
+    };
+  }
+
+  function tiempoEstimado(bits) {
+    var segundos = Math.pow(2, bits - 1) / datos.pruebasPorSegundo;   // la mitad del espacio, de media
+    var anio = 31557600;
+
+    if (segundos < 1)     { return 'menos de un segundo'; }
+    if (segundos < 60)    { return 'segundos'; }
+    if (segundos < 3600)  { return 'minutos'; }
+    if (segundos < 86400) { return 'horas'; }
+    if (segundos < anio)  { return 'días'; }
+
+    var anios = segundos / anio;
+
+    if (anios < 1000)  { return 'unos ' + Math.round(anios).toLocaleString('es-ES') + ' años'; }
+    if (anios < 1e9)   { return 'miles de años'; }
+    if (anios < 1e15)  { return 'miles de millones de años'; }
+
+    return 'más que la edad del universo';
+  }
+
+  return {
+    cargar: cargar,
+    aleatoria: aleatoria,
+    memorizable: memorizable,
+    valida: valida,
+    incumplimientosPolitica: incumplimientosPolitica,
+    cumplePolitica: cumplePolitica,
+    tasaAceptacion: tasaAceptacion,
+    paraUsuario: paraUsuario,
+    chocaConUsuario: chocaConUsuario,
+    trozosDelUsuario: trozosDelUsuario,
+    clasesDeCaracteres: clasesDeCaracteres,
+    entropiaAleatoria: entropiaAleatoria,
+    entropiaMemorizable: entropiaMemorizable,
+    valorar: valorar,
+    tiempoEstimado: tiempoEstimado,
+    quitarTildes: quitarTildes,
+    feminizar: feminizar
+  };
+})();
+</script>
+<script>/*
+ * Conexión entre el formulario y el motor.
+ *
+ * Lee los controles, pide la clave a generador.js y la escribe en la página.
+ * Nada de esto pasa por el servidor: el formulario no se envía nunca, y el
+ * detector de envío que hay más abajo existe precisamente para impedirlo.
+ *
+ * Los ajustes se recuerdan en el almacenamiento local del navegador. Las
+ * contraseñas no: se generan, se muestran y desaparecen al recargar.
+ */
+
+(function () {
+  'use strict';
+
+  // La llave cambió al quitar las sustituciones de letras por cifras: así los
+  // ajustes guardados de la versión anterior no se arrastran y la página
+  // arranca con los valores por defecto nuevos, que cumplen la política.
+  var LLAVE_AJUSTES = 'generador-claves.ajustes.v2';
+
+  var campos = [
+    'longitud', 'minusculas', 'mayusculas', 'numeros', 'simbolos', 'sin_parecidos',
+    'palabras', 'longitud_minima', 'estilo', 'separador', 'mayusculas_palabras', 'nucleo',
+    'nucleo_alfabeto', 'nucleo_posicion', 'simbolo', 'sin_tildes',
+    'cantidad'
+  ];
+
+  var elementos = {};
+  var datosDelDiccionario = {};
+
+  /*
+   * Si falta un control, se avisa por su nombre en lugar de reventar con un
+   * «null» sin contexto. Pasa cuando el navegador mezcla un index.php nuevo con
+   * un .js viejo de su caché; la dirección de los archivos estáticos lleva la
+   * fecha justamente para que no ocurra, pero más vale que se vea si ocurre.
+   */
+  function id(nombre) {
+    if (!(nombre in elementos)) {
+      elementos[nombre] = document.getElementById(nombre);
+    }
+
+    if (elementos[nombre] === null) {
+      throw new Error('Falta el control «' + nombre + '» en la página.');
+    }
+
+    return elementos[nombre];
+  }
+
+  function entero(elemento, defecto) {
+    var valor = parseInt(elemento.value, 10);
+
+    if (isNaN(valor)) {
+      return defecto;
+    }
+
+    var minimo = parseInt(elemento.min, 10);
+    var maximo = parseInt(elemento.max, 10);
+
+    if (!isNaN(minimo) && valor < minimo) { valor = minimo; }
+    if (!isNaN(maximo) && valor > maximo) { valor = maximo; }
+
+    return valor;
+  }
+
+  // --- lectura del formulario -----------------------------------------------
+
+  function modoActivo() {
+    return id('modo-memorizable').checked ? 'memorizable' : 'aleatoria';
+  }
+
+  function opcionesAleatoria() {
+    return {
+      longitud: entero(id('longitud'), datosDelDiccionario.longitudAleatoria),
+      minusculas: id('minusculas').checked,
+      mayusculas: id('mayusculas').checked,
+      numeros: id('numeros').checked,
+      simbolos: id('simbolos').checked,
+      sinParecidos: id('sin_parecidos').checked
+    };
+  }
+
+  function opcionesMemorizable() {
+    return {
+      palabras: parseInt(id('palabras').value, 10),
+      longitudMinima: entero(id('longitud_minima'), datosDelDiccionario.politica.longitudMinima),
+      estilo: id('estilo').value,
+      separador: id('separador').value,
+      mayusculas: id('mayusculas_palabras').value,
+      nucleo: parseInt(id('nucleo').value, 10),
+      nucleoAlfabeto: id('nucleo_alfabeto').value,
+      nucleoPosicion: id('nucleo_posicion').value,
+      simbolo: id('simbolo').checked,
+      sinTildes: id('sin_tildes').checked
+    };
+  }
+
+  // --- pintado ---------------------------------------------------------------
+
+  /* No usa id(): tiene que funcionar incluso cuando algo falta en la página. */
+  function mostrarError(mensaje) {
+    var error = document.getElementById('error');
+
+    if (error) {
+      error.textContent = mensaje;
+      error.hidden = false;
+    }
+
+    ['resultado-unico', 'resultado-lote', 'fuerza', 'politica'].forEach(function (nombre) {
+      var bloque = document.getElementById(nombre);
+      if (bloque) { bloque.hidden = true; }
+    });
+  }
+
+  function pintarUnica(clave) {
+    id('clave').textContent = clave;
+    id('medida').textContent = Array.from(clave).length + ' caracteres';
+    id('resultado-unico').hidden = false;
+    id('resultado-lote').hidden = true;
+  }
+
+  function pintarLote(claves) {
+    var lista = id('lote');
+
+    lista.textContent = '';
+
+    claves.forEach(function (clave, indice) {
+      var fila = document.createElement('li');
+
+      var orden = document.createElement('span');
+      orden.className = 'orden';
+      orden.textContent = String(indice + 1);
+
+      var texto = document.createElement('span');
+      texto.className = 'texto';
+      texto.textContent = clave;
+
+      var boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'copiar menuda';
+      boton.textContent = 'Copiar';
+      boton.setAttribute('data-copiar-texto', clave);
+
+      fila.appendChild(orden);
+      fila.appendChild(texto);
+      fila.appendChild(boton);
+      lista.appendChild(fila);
+    });
+
+    id('rotulo-lote').textContent = claves.length + ' contraseñas generadas';
+    id('todas').value = claves.join('\n');
+    id('resultado-lote').hidden = false;
+    id('resultado-unico').hidden = true;
+  }
+
+  /*
+   * Línea que dice si las claves cumplen los requisitos de longitud y tipos de
+   * carácter. Cuando no, dice por qué, para que se pueda corregir el ajuste que
+   * falla.
+   */
+  function pintarPolitica(resultados, longitudMinima) {
+    var linea = id('politica');
+    var politica = datosDelDiccionario.politica;
+    var minimo = longitudMinima || politica.longitudMinima;
+    var malas = resultados.filter(function (r) { return !r.cumple; });
+    var requisito = minimo + ' caracteres o más y '
+      + (politica.tiposMinimos === 4 ? 'los 4 tipos de carácter' : politica.tiposMinimos + ' tipos de carácter');
+
+    linea.hidden = false;
+
+    if (malas.length === 0) {
+      linea.className = 'politica politica-cumple';
+      linea.textContent = (resultados.length === 1 ? 'Cumple' : 'Todas cumplen')
+        + ' los requisitos: ' + requisito + '.';
+      return;
+    }
+
+    linea.className = 'politica politica-falla';
+    linea.textContent = (resultados.length === 1
+        ? 'No cumple los requisitos: '
+        : malas.length + ' de ' + resultados.length + ' no cumplen los requisitos. La primera ')
+      + window.Generador.incumplimientosPolitica(malas[0].clave, minimo).join('; ')
+      + '. Con estos ajustes no se puede cumplir: '
+      + (modoActivo() === 'aleatoria'
+        ? 'sube la longitud o marca más tipos de carácter.'
+        : 'añade palabras, baja la longitud mínima, pon un separador o un núcleo de cifras.');
+  }
+
+  /*
+   * Bits del modo memorizable descontando las claves que se descartan por
+   * cortas: si solo vale una de cada cuatro, hay cuatro veces menos claves
+   * posibles y se pierden 2 bits.
+   */
+  function entropiaEfectiva(opciones) {
+    var bits = window.Generador.entropiaMemorizable(opciones);
+    var tasa = window.Generador.tasaAceptacion(opciones);
+
+    return tasa > 0 ? bits + Math.log2(tasa) : bits;
+  }
+
+  function pintarFuerza(bits) {
+    var valoracion = window.Generador.valorar(bits);
+    var fuerza = id('fuerza');
+
+    fuerza.className = 'fuerza fuerza-' + valoracion.clase;
+    fuerza.hidden = false;
+    id('valoracion').textContent = valoracion.etiqueta;
+    id('bits').textContent = bits.toFixed(1).replace('.', ',') + ' bits · '
+      + window.Generador.tiempoEstimado(bits);
+    id('relleno').className = 'p' + valoracion.porcentaje;
+  }
+
+  // --- generación ------------------------------------------------------------
+
+  function generar() {
+    try {
+      generarDeVerdad();
+    } catch (error) {
+      mostrarError(
+        'La página no ha podido generar la contraseña: ' + error.message
+        + ' Recarga la página y vuelve a intentarlo.'
+      );
+    }
+  }
+
+  function generarDeVerdad() {
+    var modo = modoActivo();
+    var opciones = modo === 'aleatoria' ? opcionesAleatoria() : opcionesMemorizable();
+
+    if (modo === 'aleatoria' && window.Generador.clasesDeCaracteres(opciones).length === 0) {
+      mostrarError(
+        'No queda ningún carácter disponible: marca al menos un tipo de carácter y revisa '
+        + 'la casilla de caracteres parecidos.'
+      );
+      return;
+    }
+
+    id('error').hidden = true;
+
+    opciones.modo = modo;
+
+    var cantidad = entero(id('cantidad'), 1);
+    var resultados = [];
+    var i;
+
+    for (i = 0; i < cantidad; i++) {
+      resultados.push(window.Generador.valida(opciones));
+    }
+
+    var claves = resultados.map(function (r) { return r.clave; });
+
+    if (claves.length === 1) {
+      pintarUnica(claves[0]);
+    } else {
+      pintarLote(claves);
+    }
+
+    pintarFuerza(modo === 'aleatoria'
+      ? window.Generador.entropiaAleatoria(opciones)
+      : entropiaEfectiva(opciones));
+
+    pintarPolitica(resultados, modo === 'memorizable' ? opciones.longitudMinima : null);
+
+    guardarAjustes();
+  }
+
+  // --- altas de usuario ------------------------------------------------------
+
+  /*
+   * Los usuarios se pegan uno por línea, pero la gente pega de todo: separados
+   * por comas, con punto y coma, con espacios de sobra o con líneas vacías.
+   * Se admite cualquiera de esas formas y se quitan los repetidos.
+   */
+  function leerUsuarios(texto) {
+    var vistos = {};
+    var lista = [];
+
+    texto.split(/[\n\r,;\t]+/).forEach(function (bruto) {
+      var usuario = bruto.trim();
+      var llave = usuario.toLowerCase();
+
+      if (usuario !== '' && !vistos[llave]) {
+        vistos[llave] = true;
+        lista.push(usuario);
+      }
+    });
+
+    return lista;
+  }
+
+  /* Un campo de CSV: se entrecomilla siempre y las comillas internas se doblan. */
+  function campoCsv(valor) {
+    return '"' + String(valor).replace(/"/g, '""') + '"';
+  }
+
+  /*
+   * La cabecera va sin tilde («contrasena») a propósito: así en PowerShell se
+   * lee como $_.contrasena, sin comillas ni rodeos.
+   */
+  function construirCsv(altas, separador) {
+    var lineas = [['usuario', 'contrasena'].map(campoCsv).join(separador)];
+
+    altas.forEach(function (alta) {
+      lineas.push([campoCsv(alta.usuario), campoCsv(alta.clave)].join(separador));
+    });
+
+    // El BOM es lo que hace que Excel abra el archivo en UTF-8 y no destroce
+    // las tildes; a Import-Csv no le molesta.
+    return '﻿' + lineas.join('\r\n') + '\r\n';
+  }
+
+  function nombreArchivo() {
+    var hoy = new Date();
+    var dos = function (n) { return (n < 10 ? '0' : '') + n; };
+
+    return 'altas-' + hoy.getFullYear() + '-' + dos(hoy.getMonth() + 1) + '-' + dos(hoy.getDate()) + '.csv';
+  }
+
+  var altasGeneradas = [];
+
+  function descargarCsv() {
+    if (altasGeneradas.length === 0) {
+      return;
+    }
+
+    var texto = construirCsv(altasGeneradas, id('csv_separador').value);
+    var blob = new Blob([texto], { type: 'text/csv;charset=utf-8' });
+    var enlace = document.createElement('a');
+    var direccion = URL.createObjectURL(blob);
+
+    enlace.href = direccion;
+    enlace.download = nombreArchivo();
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+
+    // Liberar la dirección: si no, el archivo se queda en memoria hasta que se
+    // cierre la pestaña, y son contraseñas.
+    window.setTimeout(function () { URL.revokeObjectURL(direccion); }, 1000);
+  }
+
+  function pintarAltas(altas) {
+    var cuerpo = id('filas-altas');
+
+    cuerpo.textContent = '';
+
+    altas.forEach(function (alta) {
+      var fila = document.createElement('tr');
+
+      var usuario = document.createElement('td');
+      usuario.className = 'col-usuario';
+      usuario.textContent = alta.usuario;
+
+      var clave = document.createElement('td');
+      clave.className = 'col-clave';
+      clave.textContent = alta.clave;
+
+      var acciones = document.createElement('td');
+      acciones.className = 'col-acciones';
+
+      var boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'copiar menuda';
+      boton.textContent = 'Copiar';
+      boton.setAttribute('data-copiar-texto', alta.clave);
+      acciones.appendChild(boton);
+
+      fila.appendChild(usuario);
+      fila.appendChild(clave);
+      fila.appendChild(acciones);
+      cuerpo.appendChild(fila);
+    });
+
+    id('altas-texto').value = altas.map(function (alta) {
+      return alta.usuario + '\t' + alta.clave;
+    }).join('\n');
+
+    id('resultado-altas').hidden = false;
+  }
+
+  function avisosDeAltas(altas, sobrantes) {
+    var avisos = [];
+    var chocan = altas.filter(function (alta) { return alta.choca; });
+    var incumplen = altas.filter(function (alta) { return !alta.cumple; });
+    // Un campo que empieza por = + - @ lo interpreta Excel como fórmula.
+    var formulas = altas.filter(function (alta) { return /^[=+\-@]/.test(alta.clave); });
+
+    if (sobrantes > 0) {
+      avisos.push('Se han generado las ' + altas.length + ' primeras; sobran ' + sobrantes
+        + ' usuarios por encima del máximo.');
+    }
+
+    if (incumplen.length > 0) {
+      avisos.push(incumplen.length + (incumplen.length === 1 ? ' clave no cumple' : ' claves no cumplen')
+        + ' los requisitos de longitud y tipos de carácter: '
+        + incumplen.map(function (a) { return a.usuario; }).join(', ')
+        + '. Revisa los ajustes de arriba (palabras, separador, núcleo).');
+    }
+
+    if (chocan.length > 0) {
+      avisos.push(chocan.length + (chocan.length === 1 ? ' clave contiene' : ' claves contienen')
+        + ' un trozo del nombre de cuenta: '
+        + chocan.map(function (a) { return a.usuario; }).join(', ') + '.');
+    }
+
+    if (formulas.length > 0) {
+      avisos.push(formulas.length + (formulas.length === 1 ? ' clave empieza' : ' claves empiezan')
+        + ' por =, +, - o @, y Excel las tomaría por fórmulas. Ábrelo con el asistente de '
+        + 'importación o usa el separador de coma con PowerShell.');
+    }
+
+    var aviso = id('aviso-altas');
+    aviso.textContent = avisos.join(' ');
+    aviso.hidden = avisos.length === 0;
+  }
+
+  function generarAltas() {
+    var error = id('error-altas');
+    var usuarios = leerUsuarios(id('usuarios').value);
+
+    error.hidden = true;
+
+    if (usuarios.length === 0) {
+      error.textContent = 'Pega al menos un usuario, uno por línea.';
+      error.hidden = false;
+      id('resultado-altas').hidden = true;
+      return;
+    }
+
+    var modo = modoActivo();
+    var opciones = modo === 'aleatoria' ? opcionesAleatoria() : opcionesMemorizable();
+
+    if (modo === 'aleatoria' && window.Generador.clasesDeCaracteres(opciones).length === 0) {
+      error.textContent = 'Primero marca al menos un tipo de carácter en los ajustes.';
+      error.hidden = false;
+      id('resultado-altas').hidden = true;
+      return;
+    }
+
+    opciones.modo = modo;
+
+    var tope = datosDelDiccionario.loteMaximo || 200;
+    var sobrantes = Math.max(0, usuarios.length - tope);
+
+    altasGeneradas = usuarios.slice(0, tope).map(function (usuario) {
+      var resultado = window.Generador.paraUsuario(opciones, usuario);
+      return { usuario: usuario, clave: resultado.clave, choca: resultado.choca, cumple: resultado.cumple };
+    });
+
+    pintarAltas(altasGeneradas);
+    avisosDeAltas(altasGeneradas, sobrantes);
+  }
+
+  // --- ajustes recordados ----------------------------------------------------
+
+  function guardarAjustes() {
+    try {
+      var guardado = { modo: modoActivo() };
+
+      campos.forEach(function (nombre) {
+        var campo = id(nombre);
+        guardado[nombre] = campo.type === 'checkbox' ? campo.checked : campo.value;
+      });
+
+      localStorage.setItem(LLAVE_AJUSTES, JSON.stringify(guardado));
+    } catch (error) {
+      /* Navegación privada o almacenamiento bloqueado: no pasa nada. */
+    }
+  }
+
+  function recuperarAjustes() {
+    try {
+      var guardado = JSON.parse(localStorage.getItem(LLAVE_AJUSTES) || '{}');
+
+      if (guardado.modo === 'memorizable') {
+        id('modo-memorizable').checked = true;
+      }
+
+      campos.forEach(function (nombre) {
+        if (!(nombre in guardado)) {
+          return;
+        }
+
+        var campo = id(nombre);
+
+        if (campo.type === 'checkbox') {
+          campo.checked = Boolean(guardado[nombre]);
+        } else {
+          campo.value = guardado[nombre];
+        }
+      });
+    } catch (error) {
+      /* Ajustes ilegibles: se usan los valores por defecto del HTML. */
+    }
+  }
+
+  // --- arranque --------------------------------------------------------------
+
+  function arrancar() {
+    try {
+      arrancarDeVerdad();
+    } catch (error) {
+      mostrarError(
+        'La página no ha arrancado bien: ' + error.message
+        + ' Recarga la página y vuelve a intentarlo.'
+      );
+    }
+  }
+
+  function arrancarDeVerdad() {
+    var bloque = document.getElementById('diccionario');
+
+    if (!bloque) {
+      mostrarError('No se ha podido cargar el diccionario.');
+      return;
+    }
+
+    datosDelDiccionario = JSON.parse(bloque.textContent);
+    window.Generador.cargar(datosDelDiccionario);
+
+    recuperarAjustes();
+
+    // El formulario no se envía jamás: si se enviara, las opciones irían al
+    // servidor y la contraseña volvería por la red, que es justo lo que este
+    // diseño evita.
+    document.getElementById('ajustes').addEventListener('submit', function (evento) {
+      evento.preventDefault();
+      generar();
+    });
+
+    document.getElementById('ajustes').addEventListener('change', generar);
+    document.getElementById('generar').addEventListener('click', generar);
+    document.getElementById('generar-altas').addEventListener('click', generarAltas);
+    document.getElementById('descargar-csv').addEventListener('click', descargarCsv);
+
+    generar();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', arrancar);
+  } else {
+    arrancar();
+  }
+})();
+</script>
+<script>/*
+ * Copiado al portapapeles.
+ *
+ * Es lo único que hace JavaScript en esta página: si el archivo no carga, el
+ * generador sigue funcionando entero y las contraseñas se pueden seleccionar a
+ * mano (el estilo las marca con user-select para que baste un clic).
+ *
+ * Un botón indica qué copiar de dos maneras:
+ *   data-copiar="id"        -> el texto del elemento con ese identificador
+ *   data-copiar-texto="..." -> ese texto literal
+ */
+
+(function () {
+  'use strict';
+
+  function leerValor(boton) {
+    var literal = boton.getAttribute('data-copiar-texto');
+
+    if (literal !== null) {
+      return literal;
+    }
+
+    var destino = document.getElementById(boton.getAttribute('data-copiar'));
+
+    if (!destino) {
+      return '';
+    }
+
+    return 'value' in destino ? destino.value : destino.textContent;
+  }
+
+  function avisar(boton, texto) {
+    var original = boton.getAttribute('data-texto-original');
+
+    if (original === null) {
+      original = boton.textContent;
+      boton.setAttribute('data-texto-original', original);
+    }
+
+    boton.textContent = texto;
+
+    window.setTimeout(function () {
+      boton.textContent = original;
+    }, 1600);
+  }
+
+  /* Respaldo para navegadores sin portapapeles asíncrono y para páginas
+     servidas por HTTP, donde navigator.clipboard no está disponible. */
+  function copiarAlaAntigua(valor, boton) {
+    var caja = document.createElement('textarea');
+
+    caja.value = valor;
+    caja.setAttribute('readonly', '');
+    caja.style.position = 'fixed';
+    caja.style.top = '-1000px';
+    document.body.appendChild(caja);
+    caja.select();
+
+    var hecho = false;
+
+    try {
+      hecho = document.execCommand('copy');
+    } catch (error) {
+      hecho = false;
+    }
+
+    document.body.removeChild(caja);
+    avisar(boton, hecho ? 'Copiado' : 'Selecciona y copia');
+  }
+
+  function copiar(boton) {
+    var valor = leerValor(boton);
+
+    if (!valor) {
+      return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(valor).then(
+        function () { avisar(boton, 'Copiado'); },
+        function () { copiarAlaAntigua(valor, boton); }
+      );
+      return;
+    }
+
+    copiarAlaAntigua(valor, boton);
+  }
+
+  document.addEventListener('click', function (evento) {
+    var boton = evento.target.closest('.copiar');
+
+    if (boton) {
+      copiar(boton);
+    }
+  });
+})();
+</script>
+</body>
+</html>
