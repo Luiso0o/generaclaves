@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-7GwY1Jbw2P8Ovv1n5fEULLuOOnyANTlyilWexa5Q/6s='; script-src 'sha256-327MQjDb2A7dZK2GiG2mKzDOm/id+gi15AbkJxroBXQ=' 'sha256-VOqfDUkX2rWttTAjoTJiauzKG5vwLAExYF0PsBzZRTI=' 'sha256-1IOFeK3AUTYbYiZjI2o7YjBpaTow7lOODWA3IxmAN+w='; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-v/eDKaaazFoBLLltoMdJyVrBmMhABT33hMJVN6N3z3U='; script-src 'sha256-327MQjDb2A7dZK2GiG2mKzDOm/id+gi15AbkJxroBXQ=' 'sha256-VOqfDUkX2rWttTAjoTJiauzKG5vwLAExYF0PsBzZRTI=' 'sha256-1IOFeK3AUTYbYiZjI2o7YjBpaTow7lOODWA3IxmAN+w='; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -203,15 +203,14 @@ body:has(#modo-memorizable:checked) .lote .texto {
 
 #resultado-unico {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px 12px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
 }
 
 #resultado-unico .clave,
 #resultado-unico .deletreo { grid-column: 1 / -1; }
 
-#resultado-unico .medida { text-align: right; }
+#resultado-unico .medida { margin-top: -4px; }
 
 .medida {
   margin: 0;
@@ -727,8 +726,6 @@ noscript .aviso-error { display: block; }
   .pestana { flex: 1 1 0; text-align: center; padding-inline: 8px; }
   .fuerza { grid-template-columns: 1fr; }
   .tiempo { text-align: left; }
-  #resultado-unico { grid-template-columns: minmax(0, 1fr); }
-  #resultado-unico .medida { text-align: left; }
   .campo-cantidad,
   .campo-cantidad input { flex-basis: 100%; width: 100%; }
 }
