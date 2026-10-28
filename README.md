@@ -4,7 +4,7 @@
 
 Un generador de contraseñas que funciona entero en el navegador. Es un único archivo HTML: sin servidor, sin dependencias y sin conexiones a ningún sitio. Las contraseñas nacen en tu equipo y no salen de él.
 
-**Úsalo en línea:** https://generaclaves.lubricantes-sash.com
+**Úsalo en línea:** https://pw.linvx.org
 
 ![Modo memorizable con el deletreo abierto](docs/captura-es.png)
 
@@ -44,7 +44,7 @@ Descarga `index.html` y ábrelo con el navegador. Funciona igual que en línea, 
 La huella SHA-256 de `index.html` cambia con cualquier modificación, por pequeña que sea. Para comparar la versión publicada con la del repositorio:
 
 ```bash
-curl -s https://generaclaves.lubricantes-sash.com/ | sha256sum
+curl -s https://pw.linvx.org | sha256sum
 sha256sum index.html
 ```
 

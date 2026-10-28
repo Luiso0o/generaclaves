@@ -4,7 +4,7 @@
 
 Um gerador de palavras-passe que funciona inteiramente no navegador. É um único ficheiro HTML: sem servidor, sem dependências e sem ligações a lado nenhum. As palavras-passe nascem no seu equipamento e não saem dele.
 
-**Usar online:** https://generaclaves.lubricantes-sash.com
+**Usar online:** https://pw.linvx.org
 
 ![Modo memorizável com a soletração aberta](docs/captura-pt.png)
 
@@ -44,7 +44,7 @@ Descarregue `index.html` e abra-o no navegador. Funciona igual que online, mesmo
 A impressão SHA-256 de `index.html` muda com qualquer alteração, por pequena que seja. Para comparar a versão publicada com a do repositório:
 
 ```bash
-curl -s https://generaclaves.lubricantes-sash.com/ | sha256sum
+curl -s https://pw.linvx.org | sha256sum
 sha256sum index.html
 ```
 

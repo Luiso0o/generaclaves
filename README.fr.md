@@ -4,7 +4,7 @@
 
 Un générateur de mots de passe qui fonctionne entièrement dans le navigateur. C'est un seul fichier HTML : pas de serveur, pas de dépendances et aucune connexion vers l'extérieur. Les mots de passe naissent sur votre appareil et n'en sortent pas.
 
-**L'utiliser en ligne :** https://generaclaves.lubricantes-sash.com
+**L'utiliser en ligne :** https://pw.linvx.org
 
 ![Mode mémorisable avec l'épellation ouverte](docs/captura-fr.png)
 
@@ -44,7 +44,7 @@ Téléchargez `index.html` et ouvrez-le dans votre navigateur. Il fonctionne com
 L'empreinte SHA-256 de `index.html` change à la moindre modification. Pour comparer la version publiée à celle du dépôt :
 
 ```bash
-curl -s https://generaclaves.lubricantes-sash.com/ | sha256sum
+curl -s https://pw.linvx.org | sha256sum
 sha256sum index.html
 ```
 

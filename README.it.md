@@ -4,7 +4,7 @@
 
 Un generatore di password che funziona interamente nel browser. È un unico file HTML: niente server, niente dipendenze e nessuna connessione verso l'esterno. Le password nascono sul tuo dispositivo e non ne escono.
 
-**Usalo online:** https://generaclaves.lubricantes-sash.com
+**Usalo online:** https://pw.linvx.org
 
 ![Modalità memorizzabile con la compitazione aperta](docs/captura-it.png)
 
@@ -44,7 +44,7 @@ Scarica `index.html` e aprilo nel browser. Funziona come online, anche senza int
 L'impronta SHA-256 di `index.html` cambia con qualsiasi modifica, anche minima. Per confrontare la versione pubblicata con quella del repository:
 
 ```bash
-curl -s https://generaclaves.lubricantes-sash.com/ | sha256sum
+curl -s https://pw.linvx.org | sha256sum
 sha256sum index.html
 ```
 
