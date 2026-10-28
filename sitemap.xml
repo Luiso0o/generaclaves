@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://pw.linvx.org/</loc>
+    <lastmod>2026-10-28</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://pw.linvx.org/?lang=es"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pw.linvx.org/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://pw.linvx.org/?lang=fr"/>
@@ -12,6 +13,7 @@
   </url>
   <url>
     <loc>https://pw.linvx.org/?lang=es</loc>
+    <lastmod>2026-10-28</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://pw.linvx.org/?lang=es"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pw.linvx.org/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://pw.linvx.org/?lang=fr"/>
@@ -22,6 +24,7 @@
   </url>
   <url>
     <loc>https://pw.linvx.org/?lang=en</loc>
+    <lastmod>2026-10-28</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://pw.linvx.org/?lang=es"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pw.linvx.org/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://pw.linvx.org/?lang=fr"/>
@@ -32,6 +35,7 @@
   </url>
   <url>
     <loc>https://pw.linvx.org/?lang=fr</loc>
+    <lastmod>2026-10-28</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://pw.linvx.org/?lang=es"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pw.linvx.org/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://pw.linvx.org/?lang=fr"/>
@@ -42,6 +46,7 @@
   </url>
   <url>
     <loc>https://pw.linvx.org/?lang=pt</loc>
+    <lastmod>2026-10-28</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://pw.linvx.org/?lang=es"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pw.linvx.org/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://pw.linvx.org/?lang=fr"/>
@@ -52,6 +57,7 @@
   </url>
   <url>
     <loc>https://pw.linvx.org/?lang=de</loc>
+    <lastmod>2026-10-28</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://pw.linvx.org/?lang=es"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pw.linvx.org/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://pw.linvx.org/?lang=fr"/>
@@ -62,6 +68,7 @@
   </url>
   <url>
     <loc>https://pw.linvx.org/?lang=it</loc>
+    <lastmod>2026-10-28</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://pw.linvx.org/?lang=es"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pw.linvx.org/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://pw.linvx.org/?lang=fr"/>
