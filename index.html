@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-v/eDKaaazFoBLLltoMdJyVrBmMhABT33hMJVN6N3z3U='; script-src 'sha256-327MQjDb2A7dZK2GiG2mKzDOm/id+gi15AbkJxroBXQ=' 'sha256-VOqfDUkX2rWttTAjoTJiauzKG5vwLAExYF0PsBzZRTI=' 'sha256-1IOFeK3AUTYbYiZjI2o7YjBpaTow7lOODWA3IxmAN+w='; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-v/eDKaaazFoBLLltoMdJyVrBmMhABT33hMJVN6N3z3U='; script-src 'sha256-mlSnURzm5h0LsfyfgYAAcE/J2G4mwG/LKsHrQ/UdDyk=' 'sha256-ieocXNRsqouLvlsYkLW7sxvMU6ZfIXXoUx7OJUR6d14=' 'sha256-20K+qy395n2BAnmACXiSD44hs5OYDwyyvvuPwbWzRzo='; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -766,21 +766,21 @@ noscript .aviso-error { display: block; }
     <p class="aviso-error" id="error" role="alert" hidden></p>
 
     <div id="resultado-unico">
-      <p class="clave" id="clave" aria-live="polite">…</p>
+      <p class="clave notranslate" id="clave" translate="no" aria-live="polite">…</p>
       <div class="acciones-resultado">
         <button type="button" class="copiar" data-copiar="clave" data-t="copiar">Copiar</button>
         <button type="button" id="otra" data-t="otra">Otra</button>
         <button type="button" id="deletrear" aria-expanded="false" aria-controls="deletreo" data-t="deletrear">Deletrear</button>
       </div>
       <p class="medida" id="medida"></p>
-      <ol class="deletreo" id="deletreo" hidden></ol>
+      <ol class="deletreo notranslate" id="deletreo" translate="no" hidden></ol>
     </div>
 
     <div id="resultado-lote" hidden>
       <p class="rotulo-lote" id="rotulo-lote"></p>
-      <ol class="lote" id="lote"></ol>
+      <ol class="lote notranslate" id="lote" translate="no"></ol>
       <label class="etiqueta-bloque" for="todas" data-t="todas_juntas">Todas juntas, una por línea</label>
-      <textarea id="todas" class="bloque" rows="6" readonly></textarea>
+      <textarea id="todas" class="bloque notranslate" rows="6" readonly translate="no" spellcheck="false" autocomplete="off"></textarea>
       <div class="acciones-resultado">
         <button type="button" class="copiar" data-copiar="todas" data-t="copiar_todas">Copiar todas</button>
       </div>
@@ -1049,13 +1049,18 @@ window.Generador = (function () {
   var datos = null;   // diccionarios, textos, alfabetos y límites; lo pone cargar()
   var idiomaTextos = 'es';
 
+  /* Solo claves propias: «constructor» o «__proto__» no son idiomas. */
+  function esPropia(objeto, clave) {
+    return Object.prototype.hasOwnProperty.call(objeto, clave);
+  }
+
   function cargar(configuracion) {
     datos = configuracion;
   }
 
   /* Idioma de los mensajes que devuelve el motor (avisos, valoración, tiempo). */
   function ponerIdiomaTextos(idioma) {
-    idiomaTextos = datos.textos[idioma] ? idioma : 'es';
+    idiomaTextos = esPropia(datos.textos, idioma) ? idioma : 'es';
   }
 
   /*
@@ -1146,7 +1151,7 @@ window.Generador = (function () {
   var diccionarios = {};
 
   function diccionario(idioma) {
-    var codigo = datos.idiomas[idioma] ? idioma : 'es';
+    var codigo = esPropia(datos.idiomas, idioma) ? idioma : 'es';
 
     if (!diccionarios[codigo]) {
       var fuente = datos.idiomas[codigo];
@@ -1764,6 +1769,7 @@ window.Generador = (function () {
     valorar: valorar,
     tiempoEstimado: tiempoEstimado,
     quitarTildes: quitarTildes,
+    esPropia: esPropia,
     diccionario: diccionario,
     ponerIdiomaTextos: ponerIdiomaTextos,
     t: t,
@@ -2251,7 +2257,7 @@ window.Generador = (function () {
   function idiomaInicial() {
     try {
       var guardado = localStorage.getItem(LLAVE_IDIOMA);
-      if (guardado && datosDelDiccionario.textos[guardado]) { return guardado; }
+      if (guardado && window.Generador.esPropia(datosDelDiccionario.textos, guardado)) { return guardado; }
     } catch (error) {
       /* Sin almacenamiento: se usa el del navegador. */
     }
@@ -2261,7 +2267,7 @@ window.Generador = (function () {
 
     for (i = 0; i < preferidos.length; i++) {
       var codigo = String(preferidos[i]).slice(0, 2).toLowerCase();
-      if (datosDelDiccionario.textos[codigo]) { return codigo; }
+      if (window.Generador.esPropia(datosDelDiccionario.textos, codigo)) { return codigo; }
     }
 
     return 'es';
@@ -2317,7 +2323,7 @@ window.Generador = (function () {
   }
 
   function aplicarIdioma(codigo) {
-    idiomaInterfaz = datosDelDiccionario.textos[codigo] ? codigo : 'es';
+    idiomaInterfaz = window.Generador.esPropia(datosDelDiccionario.textos, codigo) ? codigo : 'es';
     window.Generador.ponerIdiomaTextos(idiomaInterfaz);
     document.documentElement.lang = idiomaInterfaz;
     id('idioma_interfaz').value = idiomaInterfaz;
@@ -2469,6 +2475,8 @@ window.Generador = (function () {
 
     caja.value = valor;
     caja.setAttribute('readonly', '');
+    caja.setAttribute('translate', 'no');
+    caja.setAttribute('spellcheck', 'false');
     caja.style.position = 'fixed';
     caja.style.top = '-1000px';
     document.body.appendChild(caja);
