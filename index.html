@@ -2,10 +2,26 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-v/eDKaaazFoBLLltoMdJyVrBmMhABT33hMJVN6N3z3U='; script-src 'sha256-mlSnURzm5h0LsfyfgYAAcE/J2G4mwG/LKsHrQ/UdDyk=' 'sha256-ieocXNRsqouLvlsYkLW7sxvMU6ZfIXXoUx7OJUR6d14=' 'sha256-20K+qy395n2BAnmACXiSD44hs5OYDwyyvvuPwbWzRzo='; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-v/eDKaaazFoBLLltoMdJyVrBmMhABT33hMJVN6N3z3U='; script-src 'sha256-mlSnURzm5h0LsfyfgYAAcE/J2G4mwG/LKsHrQ/UdDyk=' 'sha256-YcNH6beZb38DKcVxs3xhLgK04EN2xGkfemGAy4nJAZE=' 'sha256-20K+qy395n2BAnmACXiSD44hs5OYDwyyvvuPwbWzRzo='; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Generador de contraseñas aleatorias, memorizables y PIN que funciona entero en tu navegador: sin servidor, sin conexiones y en seis idiomas.">
+<link rel="alternate" hreflang="es" href="https://pw.linvx.org/?lang=es">
+<link rel="alternate" hreflang="en" href="https://pw.linvx.org/?lang=en">
+<link rel="alternate" hreflang="fr" href="https://pw.linvx.org/?lang=fr">
+<link rel="alternate" hreflang="pt" href="https://pw.linvx.org/?lang=pt">
+<link rel="alternate" hreflang="de" href="https://pw.linvx.org/?lang=de">
+<link rel="alternate" hreflang="it" href="https://pw.linvx.org/?lang=it">
+<link rel="alternate" hreflang="x-default" href="https://pw.linvx.org/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pw.linvx.org/">
+<meta property="og:title" content="Generador de contraseñas">
+<meta property="og:description" content="Aleatorias, memorizables y PIN. Funciona entero en tu navegador: sin servidor y sin conexiones.">
+<meta property="og:image" content="https://pw.linvx.org/docs/vista.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Generador de contraseñas","url":"https://pw.linvx.org/","applicationCategory":"SecurityApplication","operatingSystem":"Any","inLanguage":["es","en","fr","pt","de","it"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"license":"https://www.gnu.org/licenses/gpl-3.0.html"}</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%238E2A38'/%3E%3Cg fill='none' stroke='%23FFF8F8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='16' r='5'/%3E%3Cpath d='M16 16h11M23 16v4M27 16v3'/%3E%3C/g%3E%3C/svg%3E">
 <title data-t="titulo">Generador de contraseñas</title>
 <style>/*
@@ -2255,6 +2271,10 @@ window.Generador = (function () {
    * es la primera visita, el del navegador cuando es uno de los seis.
    */
   function idiomaInicial() {
+    // Un enlace con ?lang=fr manda: es lo que usan los buscadores para cada idioma.
+    var pedido = new URLSearchParams(location.search).get('lang');
+    if (pedido && window.Generador.esPropia(datosDelDiccionario.textos, pedido)) { return pedido; }
+
     try {
       var guardado = localStorage.getItem(LLAVE_IDIOMA);
       if (guardado && window.Generador.esPropia(datosDelDiccionario.textos, guardado)) { return guardado; }
@@ -2361,6 +2381,13 @@ window.Generador = (function () {
       localStorage.setItem(LLAVE_IDIOMA, idiomaInterfaz);
     } catch (error) {
       /* Sin almacenamiento: el idioma vale para esta visita. */
+    }
+
+    // La dirección refleja el idioma, para que un enlace copiado abra en él.
+    try {
+      history.replaceState(null, '', '?lang=' + idiomaInterfaz + location.hash);
+    } catch (error) {
+      /* Algunos navegadores no lo permiten en archivos locales: no pasa nada. */
     }
 
     generar();
